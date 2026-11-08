@@ -18,7 +18,9 @@ defmodule MySuperApp.Role do
     |> cast(attrs, [:name, :permissions, :operator_id])
     |> validate_required([:name, :permissions, :operator_id])
     |> validate_name()
-    |> unsafe_validate_unique([:name, :operator_id], MySuperApp.Repo, message: "has already been taken for this operator")
+    |> unsafe_validate_unique([:name, :operator_id], MySuperApp.Repo,
+      message: "has already been taken for this operator"
+    )
     |> unique_constraint(:name, name: :unique_role_name_per_operator)
     |> assoc_constraint(:operator)
   end

@@ -30,7 +30,7 @@ defmodule MySuperAppWeb.UserRegistrationLive do
         <.error :if={@check_errors}>
           Oops, something went wrong! Please check the errors below.
         </.error>
-         <.input field={@form[:login]} label="Login" required />
+        <.input field={@form[:login]} label="Login" required />
         <.input field={@form[:email]} label="Email" required />
         <.input field={@form[:password]} type="password" label="Password" required />
         <:actions>

@@ -62,7 +62,9 @@ defmodule MySuperAppWeb.RoleControllerTest do
 
   describe "create/2" do
     test "creates a new role", %{conn: conn, operator: operator} do
-      conn = post(conn, ~p"/api/roles", role: Map.put(@valid_role_attrs, :operator_id, operator.id))
+      conn =
+        post(conn, ~p"/api/roles", role: Map.put(@valid_role_attrs, :operator_id, operator.id))
+
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
       role = Repo.get(Role, id)
@@ -76,7 +78,9 @@ defmodule MySuperAppWeb.RoleControllerTest do
 
     test "returns error when permissions are invalid", %{conn: conn, operator: operator} do
       conn = post(conn, ~p"/api/roles", role: %{permissions: 5, operator_id: operator.id})
-      assert json_response(conn, 422)["error"] == "You need to specify \"permissions\", options: 3(Gamechanger), 4(Viewer)."
+
+      assert json_response(conn, 422)["error"] ==
+               "You need to specify \"permissions\", options: 3(Gamechanger), 4(Viewer)."
     end
   end
 
@@ -102,7 +106,9 @@ defmodule MySuperAppWeb.RoleControllerTest do
 
     test "returns error when permissions are invalid", %{conn: conn, role: role} do
       conn = put(conn, ~p"/api/roles/#{role.id}", role: %{permissions: 5})
-      assert json_response(conn, 422)["error"] == "You can only update the name of the Role and permissions, permissions options: 3(Gamechanger), 4(Viewer)."
+
+      assert json_response(conn, 422)["error"] ==
+               "You can only update the name of the Role and permissions, permissions options: 3(Gamechanger), 4(Viewer)."
     end
   end
 

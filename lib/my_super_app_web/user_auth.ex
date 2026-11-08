@@ -18,9 +18,7 @@ defmodule MySuperAppWeb.UserAuth do
     if conn.assigns[:current_user].permissions > 1 do
       conn
       |> put_flash(:warn, "You have no permission to this page")
-      |> redirect(
-        to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn)
-      )
+      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
       |> halt()
     else
       conn
@@ -31,9 +29,7 @@ defmodule MySuperAppWeb.UserAuth do
     if is_nil(conn.assigns[:current_user].permissions) do
       conn
       |> put_flash(:warn, "You have no permission to this page")
-      |> redirect(
-        to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn)
-      )
+      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
       |> halt()
     else
       conn
@@ -44,9 +40,7 @@ defmodule MySuperAppWeb.UserAuth do
     if conn.assigns[:current_user].permissions > 2 do
       conn
       |> put_flash(:warn, "You have no permission to this page")
-      |> redirect(
-        to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn)
-      )
+      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
       |> halt()
     else
       conn
@@ -228,9 +222,7 @@ defmodule MySuperAppWeb.UserAuth do
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
       conn
-      |> redirect(
-        to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn)
-      )
+      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
       |> halt()
     else
       conn

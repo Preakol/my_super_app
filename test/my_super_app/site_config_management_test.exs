@@ -17,12 +17,14 @@ defmodule MySuperApp.SiteConfigManagementTest do
       operator_id: operator1.id,
       inserted_at: ~U[2024-10-01 00:00:00Z]
     }
+
     site_config2 = %SiteConfig{
       brand: "Brand2",
       status: false,
       operator_id: operator2.id,
       inserted_at: ~U[2024-10-02 00:00:00Z]
     }
+
     site_config3 = %SiteConfig{
       brand: "Another Brand",
       status: false,
@@ -34,36 +36,82 @@ defmodule MySuperApp.SiteConfigManagementTest do
     {:ok, site_config2} = Repo.insert(site_config2)
     {:ok, site_config3} = Repo.insert(site_config3)
 
-    {:ok, operator1: operator1, operator2: operator2, site_config1: site_config1, site_config2: site_config2, site_config3: site_config3}
+    {:ok,
+     operator1: operator1,
+     operator2: operator2,
+     site_config1: site_config1,
+     site_config2: site_config2,
+     site_config3: site_config3}
   end
 
   describe "list_site_configs_by_filters/1" do
-    test "returns all site configs when default filters applied", %{site_config1: site_config1, site_config2: site_config2, site_config3: site_config3} do
-      result = SiteConfigManagement.list_site_configs_by_filters(%{search: "", start_date: nil, end_date: nil, sorting: [id: "ASC"]})
+    test "returns all site configs when default filters applied", %{
+      site_config1: site_config1,
+      site_config2: site_config2,
+      site_config3: site_config3
+    } do
+      result =
+        SiteConfigManagement.list_site_configs_by_filters(%{
+          search: "",
+          start_date: nil,
+          end_date: nil,
+          sorting: [id: "ASC"]
+        })
 
       assert Enum.map(result, & &1.id) == [site_config1.id, site_config2.id, site_config3.id]
     end
 
-    test "filters by search (brand) correctly", %{site_config1: site_config1, site_config2: site_config2} do
-      result = SiteConfigManagement.list_site_configs_by_filters(%{search: "Brand", start_date: nil, end_date: nil, sorting: [id: "ASC"]})
+    test "filters by search (brand) correctly", %{
+      site_config1: site_config1,
+      site_config2: site_config2
+    } do
+      result =
+        SiteConfigManagement.list_site_configs_by_filters(%{
+          search: "Brand",
+          start_date: nil,
+          end_date: nil,
+          sorting: [id: "ASC"]
+        })
 
       assert Enum.map(result, & &1.id) == [site_config1.id, site_config2.id]
     end
 
     test "filters by search (operator name) correctly", %{site_config1: site_config1} do
-      result = SiteConfigManagement.list_site_configs_by_filters(%{search: "Test Operator1", start_date: nil, end_date: nil, sorting: [id: "ASC"]})
+      result =
+        SiteConfigManagement.list_site_configs_by_filters(%{
+          search: "Test Operator1",
+          start_date: nil,
+          end_date: nil,
+          sorting: [id: "ASC"]
+        })
 
       assert Enum.map(result, & &1.id) == [site_config1.id]
     end
 
     test "filters by date range", %{site_config2: site_config2, site_config3: site_config3} do
-      result = SiteConfigManagement.list_site_configs_by_filters(%{search: "", start_date: "2024-10-02",  end_date: "2024-10-03", sorting: [id: "ASC"]})
+      result =
+        SiteConfigManagement.list_site_configs_by_filters(%{
+          search: "",
+          start_date: "2024-10-02",
+          end_date: "2024-10-03",
+          sorting: [id: "ASC"]
+        })
 
       assert Enum.map(result, & &1.id) == [site_config2.id, site_config3.id]
     end
 
-    test "sorts results by inserted_at in descending order", %{site_config1: site_config1, site_config2: site_config2, site_config3: site_config3} do
-      result = SiteConfigManagement.list_site_configs_by_filters(%{search: "", start_date: nil, end_date: nil, sorting: [{:inserted_at, "DESC"}]})
+    test "sorts results by inserted_at in descending order", %{
+      site_config1: site_config1,
+      site_config2: site_config2,
+      site_config3: site_config3
+    } do
+      result =
+        SiteConfigManagement.list_site_configs_by_filters(%{
+          search: "",
+          start_date: nil,
+          end_date: nil,
+          sorting: [{:inserted_at, "DESC"}]
+        })
 
       assert Enum.map(result, & &1.id) == [site_config3.id, site_config2.id, site_config1.id]
     end
@@ -84,14 +132,18 @@ defmodule MySuperApp.SiteConfigManagementTest do
   describe "create_site_config/1" do
     test "creates a new site config", %{operator1: operator1} do
       attrs = %{brand: "New Brand", status: true, operator_id: operator1.id}
-      assert {:ok, %SiteConfig{brand: "New Brand"}} = SiteConfigManagement.create_site_config(attrs)
+
+      assert {:ok, %SiteConfig{brand: "New Brand"}} =
+               SiteConfigManagement.create_site_config(attrs)
     end
   end
 
   describe "update_site_config/2" do
     test "updates an existing site config", %{site_config1: site_config1} do
       attrs = %{brand: "Updated Brand"}
-      assert {:ok, %SiteConfig{brand: "Updated Brand"}} = SiteConfigManagement.update_site_config(site_config1.id, attrs)
+
+      assert {:ok, %SiteConfig{brand: "Updated Brand"}} =
+               SiteConfigManagement.update_site_config(site_config1.id, attrs)
     end
   end
 

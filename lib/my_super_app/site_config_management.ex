@@ -23,7 +23,12 @@ defmodule MySuperApp.SiteConfigManagement do
     |> Repo.all()
   end
 
-  def list_site_configs_by_filters(%{search: search, start_date: start_date, end_date: end_date, sorting: sorting_params}) do
+  def list_site_configs_by_filters(%{
+        search: search,
+        start_date: start_date,
+        end_date: end_date,
+        sorting: sorting_params
+      }) do
     from(
       site in SiteConfig,
       join: operator in assoc(site, :operator),
@@ -89,7 +94,7 @@ defmodule MySuperApp.SiteConfigManagement do
           join: operator in assoc(site, :operator),
           where:
             ilike(site.brand, ^"#{search}%") or
-            ilike(operator.name, ^"#{search}%")
+              ilike(operator.name, ^"#{search}%")
         )
     end
   end
@@ -101,13 +106,15 @@ defmodule MySuperApp.SiteConfigManagement do
     end_date = Date.from_iso8601!(end_date)
 
     from(site in query,
-      where: fragment("date(?)", site.inserted_at) >= ^start_date and fragment("date(?)", site.inserted_at) <= ^end_date
+      where:
+        fragment("date(?)", site.inserted_at) >= ^start_date and
+          fragment("date(?)", site.inserted_at) <= ^end_date
     )
   end
 
   defp add_sorting(query, [{parameter, direction}]) do
     from(site in query,
-    order_by: ^[{direction |> String.downcase() |> String.to_atom(), parameter}]
+      order_by: ^[{direction |> String.downcase() |> String.to_atom(), parameter}]
     )
   end
 end

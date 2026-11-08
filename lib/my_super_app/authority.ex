@@ -32,23 +32,24 @@ defmodule MySuperApp.Authority do
   def get_role_names_with_users_by_operator(operator_name) do
     Repo.all(
       from role in Role,
-      join: user in assoc(role, :users),
-      join: operator in assoc(role, :operator),
-      where: operator.name == ^operator_name,
-      select: role.name
+        join: user in assoc(role, :users),
+        join: operator in assoc(role, :operator),
+        where: operator.name == ^operator_name,
+        select: role.name
     )
   end
 
   def get_roles_by_operator(nil, _), do: []
+
   def get_roles_by_operator(operator_name, with_main_operator) do
     Repo.all(
       from role in Role,
-      join: operator in assoc(role, :operator),
-      where: operator.name == ^operator_name and (role.permissions != 2 or ^with_main_operator),
-      select: %{
-        name: role.name,
-        id: role.id
-      }
+        join: operator in assoc(role, :operator),
+        where: operator.name == ^operator_name and (role.permissions != 2 or ^with_main_operator),
+        select: %{
+          name: role.name,
+          id: role.id
+        }
     )
   end
 
@@ -65,7 +66,7 @@ defmodule MySuperApp.Authority do
   end
 
   def get_role_by_name_and_op_id(name, operator_id) do
-    Repo.get_by(Role, [name: name, operator_id: operator_id])
+    Repo.get_by(Role, name: name, operator_id: operator_id)
   end
 
   def create_role(attrs \\ %{}) do
@@ -91,7 +92,8 @@ defmodule MySuperApp.Authority do
 
   def change_role(%Role{} = role, attrs \\ %{}), do: Role.changeset(role, attrs)
 
-  defp add_operator_filter(query, operator_name) when operator_name == "All" , do: query
+  defp add_operator_filter(query, operator_name) when operator_name == "All", do: query
+
   defp add_operator_filter(query, operator_name) do
     from(role in query,
       join: operator in assoc(role, :operator),

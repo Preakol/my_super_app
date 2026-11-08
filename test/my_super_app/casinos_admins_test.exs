@@ -7,9 +7,21 @@ defmodule MySuperApp.CasinosAdminsTest do
     {:ok, operator2} = Repo.insert(%Operator{name: "operator_without_users"})
 
     {:ok, role} = Repo.insert(%Role{name: "TestAdmin", permissions: 2, operator_id: operator1.id})
-    {:ok, _} = Accounts.register_user(%{login: "testuser1", email: "test@user1.com", password: "testuser1", role_id: role.id})
-    {:ok, user} = Accounts.register_user(%{login: "testuser2", email: "test@user2.com", password: "testuser2"})
 
+    {:ok, _} =
+      Accounts.register_user(%{
+        login: "testuser1",
+        email: "test@user1.com",
+        password: "testuser1",
+        role_id: role.id
+      })
+
+    {:ok, user} =
+      Accounts.register_user(%{
+        login: "testuser2",
+        email: "test@user2.com",
+        password: "testuser2"
+      })
 
     %{operator1: operator1, operator2: operator2, user_without_role: user}
   end
@@ -49,8 +61,14 @@ defmodule MySuperApp.CasinosAdminsTest do
   end
 
   describe "create_operator/1" do
-    test "creates an operator and gives a selected user the main role of this operator", %{user_without_role: user} do
-      assert {:ok, operator} = CasinosAdmins.create_operator(%{"name" => "NewOperator", "user_id" => "#{user.id}"})
+    test "creates an operator and gives a selected user the main role of this operator", %{
+      user_without_role: user
+    } do
+      assert {:ok, operator} =
+               CasinosAdmins.create_operator(%{
+                 "name" => "NewOperator",
+                 "user_id" => "#{user.id}"
+               })
 
       assert operator.name == "NewOperator"
       assert operator.id == Accounts.get_user(user.id).role.operator.id

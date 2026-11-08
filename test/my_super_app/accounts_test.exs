@@ -5,10 +5,24 @@ defmodule MySuperApp.AccountsTest do
 
   setup do
     {:ok, operator} = Repo.insert(%Operator{name: "testoperator"})
-    {:ok, role} = Authority.create_role(%{name: "AdminTest", permissions: 2, operator_id: operator.id})
-    {:ok, user} = Accounts.register_user(%{login: "testadmin", email: "test@admin.com", password: "password123", role_id: role.id})
+
+    {:ok, role} =
+      Authority.create_role(%{name: "AdminTest", permissions: 2, operator_id: operator.id})
+
+    {:ok, user} =
+      Accounts.register_user(%{
+        login: "testadmin",
+        email: "test@admin.com",
+        password: "password123",
+        role_id: role.id
+      })
+
     {:ok, user_without_role} =
-      Accounts.register_user(%{login: "testuser", email: "test@user.com", password: "password123"})
+      Accounts.register_user(%{
+        login: "testuser",
+        email: "test@user.com",
+        password: "password123"
+      })
 
     %{user: user, role: role, user_without_role: user_without_role}
   end
@@ -55,7 +69,14 @@ defmodule MySuperApp.AccountsTest do
 
     test "returns users matching role criteria", %{user: user} do
       user = Accounts.get_user_with_op_and_role(user.id)
-      filters = %{search: "", operator: user.operator_name, role: user.role_name, sorting: [id: "ASC"]}
+
+      filters = %{
+        search: "",
+        operator: user.operator_name,
+        role: user.role_name,
+        sorting: [id: "ASC"]
+      }
+
       user_id = user.id
       assert [%{id: ^user_id}] = Accounts.get_users_by_filters(filters)
     end
@@ -76,7 +97,9 @@ defmodule MySuperApp.AccountsTest do
   describe "get_users_by_role/1" do
     test "returns users by role name", %{role: role} do
       role_name = role.name
-      assert [%{role_name: ^role_name} | _] = Accounts.get_users_by_role(%{"role_name" => role_name})
+
+      assert [%{role_name: ^role_name} | _] =
+               Accounts.get_users_by_role(%{"role_name" => role_name})
     end
 
     test "returns users by role ID", %{role: role} do
@@ -99,7 +122,9 @@ defmodule MySuperApp.AccountsTest do
   describe "update_user/3" do
     test "updates user information", %{user: user} do
       attrs = %{email: "new_email@example.com"}
-      assert {:ok, %User{email: "new_email@example.com"}} = Accounts.update_user(user, attrs, "password123")
+
+      assert {:ok, %User{email: "new_email@example.com"}} =
+               Accounts.update_user(user, attrs, "password123")
     end
 
     test "returns error for invalid password", %{user: user} do
@@ -123,7 +148,8 @@ defmodule MySuperApp.AccountsTest do
 
   describe "update_user_avatar/2" do
     test "updates the avatar image", %{user: user} do
-      assert {:ok, %User{avatar_image: "new_avatar.png"}} = Accounts.update_user_avatar(user.id, "new_avatar.png")
+      assert {:ok, %User{avatar_image: "new_avatar.png"}} =
+               Accounts.update_user_avatar(user.id, "new_avatar.png")
     end
   end
 
@@ -152,12 +178,16 @@ defmodule MySuperApp.AccountsTest do
   describe "get_user_by_email_or_login_and_password/2" do
     test "returns user with valid email and password", %{user: user} do
       user_id = user.id
-      assert %User{id: ^user_id} = Accounts.get_user_by_email_or_login_and_password(user.email, "password123")
+
+      assert %User{id: ^user_id} =
+               Accounts.get_user_by_email_or_login_and_password(user.email, "password123")
     end
 
     test "returns user with valid login and password", %{user: user} do
       user_id = user.id
-      assert %User{id: ^user_id} = Accounts.get_user_by_email_or_login_and_password(user.login, "password123")
+
+      assert %User{id: ^user_id} =
+               Accounts.get_user_by_email_or_login_and_password(user.login, "password123")
     end
 
     test "returns nil for invalid credentials" do
@@ -218,7 +248,8 @@ defmodule MySuperApp.AccountsTest do
     end
 
     test "returns error for invalid password", %{user: user} do
-      assert {:error, _changeset} = Accounts.apply_user_email(user, "wrongpassword", %{email: "new_email@example.com"})
+      assert {:error, _changeset} =
+               Accounts.apply_user_email(user, "wrongpassword", %{email: "new_email@example.com"})
     end
   end
 
@@ -229,7 +260,8 @@ defmodule MySuperApp.AccountsTest do
     end
 
     test "returns error for invalid password", %{user: user} do
-      assert {:error, _changeset} = Accounts.apply_user_login(user, "wrongpassword", %{login: "newlogin"})
+      assert {:error, _changeset} =
+               Accounts.apply_user_login(user, "wrongpassword", %{login: "newlogin"})
     end
   end
 end

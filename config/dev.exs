@@ -54,12 +54,11 @@ config :my_super_app, MySuperAppWeb.Endpoint,
 
 # Watch static and templates for browser reloading.
 config :my_super_app, MySuperAppWeb.Endpoint,
-  reloadable_compilers: [:gettext, :elixir, :app, :surface],
   live_reload: [
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/my_super_app_web/(controllers|live|components)/.*(ex|heex|sface|js)$"
+      ~r"lib/my_super_app_web/(controllers|live|components)/.*(ex|heex|js)$"
     ]
   ]
 

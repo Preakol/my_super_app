@@ -1,6 +1,6 @@
 defmodule MySuperApp.Blog.Tag do
   @moduledoc false
-  
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -10,8 +10,10 @@ defmodule MySuperApp.Blog.Tag do
 
     timestamps(type: :utc_datetime)
 
-    many_to_many :posts, MySuperApp.Blog.Post, join_through: "posts_tags", on_replace: :delete, on_delete: :delete_all
-
+    many_to_many :posts, MySuperApp.Blog.Post,
+      join_through: "posts_tags",
+      on_replace: :delete,
+      on_delete: :delete_all
   end
 
   @doc false

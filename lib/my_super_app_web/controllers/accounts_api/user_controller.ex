@@ -26,6 +26,7 @@ defmodule MySuperAppWeb.UserController do
     case Accounts.get_user(id) do
       %{} = user ->
         render(conn, :show, user: user)
+
       nil ->
         conn
         |> put_status(:not_found)
@@ -37,6 +38,7 @@ defmodule MySuperAppWeb.UserController do
     case Accounts.get_user_by_name(name) do
       %{} = user ->
         render(conn, :show, user: user)
+
       nil ->
         conn
         |> put_status(:not_found)
@@ -48,6 +50,7 @@ defmodule MySuperAppWeb.UserController do
     case Accounts.get_user_by_email(email) do
       %{} = user ->
         render(conn, :show, user: user)
+
       nil ->
         conn
         |> put_status(:not_found)
@@ -56,15 +59,18 @@ defmodule MySuperAppWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    with true <- check_create_params(user_params), {:ok, user} <- Accounts.register_user(user_params) do
-        conn
-        |> put_status(:created)
-        |> render(:show, user: user)
+    with true <- check_create_params(user_params),
+         {:ok, user} <- Accounts.register_user(user_params) do
+      conn
+      |> put_status(:created)
+      |> render(:show, user: user)
     else
       false ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: "You need to specify only these required parameters: email, login, password"})
+        |> json(%{
+          error: "You need to specify only these required parameters: email, login, password"
+        })
 
       {:error, changeset} ->
         conn
@@ -74,8 +80,10 @@ defmodule MySuperAppWeb.UserController do
   end
 
   def update(conn, %{"id" => id, "user" => user_params} = params) do
-    with %{} = user <- Accounts.get_user(id), true <- check_update_params(user_params, params["current_password"]),
-     {:ok, updated_user} <- Accounts.update_user(user, user_params, params["current_password"]) do
+    with %{} = user <- Accounts.get_user(id),
+         true <- check_update_params(user_params, params["current_password"]),
+         {:ok, updated_user} <-
+           Accounts.update_user(user, user_params, params["current_password"]) do
       conn
       |> put_status(:ok)
       |> render(:show, user: Accounts.get_user(updated_user.id))
@@ -88,7 +96,10 @@ defmodule MySuperAppWeb.UserController do
       false ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: "You need to provide your current_password, and specify one or many of these parameters: email, login, password"})
+        |> json(%{
+          error:
+            "You need to provide your current_password, and specify one or many of these parameters: email, login, password"
+        })
 
       {:error, changeset} ->
         conn
@@ -117,11 +128,12 @@ defmodule MySuperAppWeb.UserController do
   end
 
   defp check_create_params(params) do
-    Map.keys(params) |> Enum.sort == ["email", "login", "password"]
+    Map.keys(params) |> Enum.sort() == ["email", "login", "password"]
   end
 
   defp check_update_params(params, current_password) do
-      Map.keys(params)
-      |> Enum.all?(fn param -> param in ["email", "login", "password"] end) && !is_nil(current_password)
+    Map.keys(params)
+    |> Enum.all?(fn param -> param in ["email", "login", "password"] end) &&
+      !is_nil(current_password)
   end
 end

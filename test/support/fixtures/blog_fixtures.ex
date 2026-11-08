@@ -49,8 +49,12 @@ defmodule MySuperApp.BlogFixtures do
 
     {:ok, picture} =
       MySuperApp.Blog.create_picture(%{
-        "file_name" => Path.basename("https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg"),
-        "path" => "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg",
+        "file_name" =>
+          Path.basename(
+            "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg"
+          ),
+        "path" =>
+          "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg",
         "post_id" => post.id
       })
 

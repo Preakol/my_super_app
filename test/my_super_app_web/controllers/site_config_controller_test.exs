@@ -15,13 +15,20 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
 
   describe "index/2" do
     test "lists all site configs", %{conn: conn, operator: operator} do
-      SiteConfigManagement.create_site_config(Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      SiteConfigManagement.create_site_config(
+        Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+      )
+
       conn = get(conn, ~p"/api/configs")
       assert json_response(conn, 200)["data"] != []
     end
 
     test "returns site configs filtered by date", %{conn: conn, operator: operator} do
-      {:ok, site_config} = SiteConfigManagement.create_site_config(Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      {:ok, site_config} =
+        SiteConfigManagement.create_site_config(
+          Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+        )
+
       conn = get(conn, ~p"/api/configs", date: "#{DateTime.to_date(site_config.inserted_at)}")
       assert json_response(conn, 200)["data"] != []
     end
@@ -32,7 +39,11 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
     end
 
     test "returns site configs filtered by operator_name", %{conn: conn, operator: operator} do
-      {:ok, _site_config} = SiteConfigManagement.create_site_config(Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      {:ok, _site_config} =
+        SiteConfigManagement.create_site_config(
+          Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+        )
+
       conn = get(conn, ~p"/api/configs", operator_name: operator.name)
       assert json_response(conn, 200)["data"] != []
     end
@@ -45,7 +56,11 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
 
   describe "show/2" do
     test "shows a site config by id", %{conn: conn, operator: operator} do
-      {:ok, site_config} = SiteConfigManagement.create_site_config(Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      {:ok, site_config} =
+        SiteConfigManagement.create_site_config(
+          Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+        )
+
       conn = get(conn, ~p"/api/configs/#{site_config.id}")
       assert json_response(conn, 200)["data"]["id"] == site_config.id
     end
@@ -58,7 +73,11 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
 
   describe "create/2" do
     test "creates a new site config", %{conn: conn, operator: operator} do
-      conn = post(conn, ~p"/api/configs", site_config: Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      conn =
+        post(conn, ~p"/api/configs",
+          site_config: Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+        )
+
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
       site_config = Repo.get(SiteConfig, id)
@@ -74,7 +93,11 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
 
   describe "update/2" do
     setup %{operator: operator} do
-      {:ok, site_config} = SiteConfigManagement.create_site_config(Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      {:ok, site_config} =
+        SiteConfigManagement.create_site_config(
+          Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+        )
+
       %{site_config: site_config}
     end
 
@@ -100,7 +123,11 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
 
   describe "delete/2" do
     setup %{operator: operator} do
-      {:ok, site_config} = SiteConfigManagement.create_site_config(Map.put(@valid_site_config_attrs, :operator_id, operator.id))
+      {:ok, site_config} =
+        SiteConfigManagement.create_site_config(
+          Map.put(@valid_site_config_attrs, :operator_id, operator.id)
+        )
+
       %{site_config: site_config}
     end
 

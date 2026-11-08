@@ -13,7 +13,7 @@ defmodule MySuperAppWeb.SiteConfigJSON do
     %{
       id: site_config.id,
       brand: site_config.brand,
-      status: site_config.status && "ACTIVE" || "STOPPED",
+      status: (site_config.status && "ACTIVE") || "STOPPED",
       operator_id: site_config.operator_id,
       inserted_at: site_config.inserted_at,
       updated_at: site_config.updated_at

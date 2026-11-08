@@ -8,7 +8,12 @@ defmodule MySuperApp.StartData do
     %Role{name: "super_admin", permissions: 1, operator_id: nil}
     |> Repo.insert()
 
-    Accounts.register_user(%{login: "superadmin", email: "super@admin.com", password: "superadmin", role_id: 1})
+    Accounts.register_user(%{
+      login: "superadmin",
+      email: "super@admin.com",
+      password: "superadmin",
+      role_id: 1
+    })
 
     Accounts.register_user(%{login: "Gosha", email: "gosha@doto.com", password: "Gosha2001"})
 
@@ -17,14 +22,16 @@ defmodule MySuperApp.StartData do
     Accounts.register_user(%{login: "Zhenya", email: "jojo@jojo.com", password: "Zhenya2004"})
 
     for id <- 2..4 do
-      CasinosAdmins.create_operator(%{"name" => StarWars.character(), "user_id" => id |> Integer.to_string()})
+      CasinosAdmins.create_operator(%{
+        "name" => StarWars.character(),
+        "user_id" => id |> Integer.to_string()
+      })
     end
 
     for _ <- 1..10 do
       character = StarWars.character()
       Accounts.register_user(%{login: character, email: Internet.email(), password: character})
     end
-
 
     brands = [
       %{name: "Bitcasino"},
@@ -35,8 +42,9 @@ defmodule MySuperApp.StartData do
       %{name: "Hub88"},
       %{name: "Moneyball-IO"},
       %{name: "Aposta10"},
-      %{name: "Slots"},
+      %{name: "Slots"}
     ]
+
     Repo.insert_all("brands", brands)
 
     %SiteConfig{brand: "Livecasino", operator_id: 1}
@@ -52,12 +60,13 @@ defmodule MySuperApp.StartData do
             Enum.map(1..n, fn _ -> %{"title" => Faker.StarWars.planet()} end)
         end
 
-      post_params = %{
-        "title" => Faker.Lorem.sentence(1..3),
-        "body" => Faker.Lorem.paragraph(3..13),
-        "user_id" => user_id
-      }
-      |> Map.merge(if tags == [], do: %{}, else: %{"tags" => Enum.uniq(tags)})
+      post_params =
+        %{
+          "title" => Faker.Lorem.sentence(1..3),
+          "body" => Faker.Lorem.paragraph(3..13),
+          "user_id" => user_id
+        }
+        |> Map.merge(if tags == [], do: %{}, else: %{"tags" => Enum.uniq(tags)})
 
       Blog.create_post(post_params)
     end
@@ -87,7 +96,7 @@ defmodule MySuperApp.StartData do
       "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_7.jpg",
       "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_8.jpg",
       "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_9.jpg",
-      "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_10.jpg",
+      "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_10.jpg"
     ]
   end
 
@@ -95,7 +104,7 @@ defmodule MySuperApp.StartData do
     CasinosAdmins.get_operator_names()
     |> Enum.each(fn operator_name ->
       Authority.get_roles_by_operator(operator_name, false)
-      |>Enum.each(fn role ->
+      |> Enum.each(fn role ->
         create_multiple_users_for_role(role.id, amount)
       end)
     end)
@@ -110,6 +119,7 @@ defmodule MySuperApp.StartData do
 
   defp generate_admin_user_params(role_id) do
     login = Internet.user_name()
+
     %{
       login: login,
       email: "#{login}@gmail.com",

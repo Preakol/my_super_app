@@ -76,22 +76,4 @@ defmodule MySuperAppWeb.PageHelper do
       _ -> direction
     end
   end
-
-  # Pre-HEEx API, used by pages not yet ported; removed together with Surface.
-  def sort_by_collumn(list, collumn, "DESC"), do: Enum.sort_by(list, &[&1[collumn]], :desc)
-  def sort_by_collumn(list, collumn, "ASC"), do: Enum.sort_by(list, &[&1[collumn]], :desc)
-
-  def select_content_for_page(assigns, content),
-    do: paginate(content, assigns.current_page, assigns.page_size)
-
-  def update_current_page(socket, content) do
-    ceil((length(content) - 1) / socket.assigns.page_size)
-    |> max(1)
-    |> min(socket.assigns.current_page)
-  end
-
-  def change_page_size(_socket, 5), do: [page_size: 5]
-
-  def change_page_size(socket, 10),
-    do: [page_size: 10, current_page: ceil(socket.assigns.current_page / 2)]
 end

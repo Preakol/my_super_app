@@ -19,25 +19,9 @@ config :my_super_app,
   ecto_repos: [MySuperApp.Repo],
   generators: [timestamp_type: :utc_datetime]
 
-moon_config_path = "#{File.cwd!()}/deps/moon/config/surface.exs"
-
-if File.exists?("#{moon_config_path}") do
-  import_config(moon_config_path)
-end
-
-config :surface, :components, [
-  {MySuperAppWeb.MyFormDropdown, propagate_context_to_slots: true},
-  {MySuperAppWeb.MyDropdownOptions, propagate_context_to_slots: true}
-]
-
 config :esbuild,
-  version: "0.16.4",
+  version: "0.25.0",
   my_super_app: [
-    args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ],
-  default: [
     args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
@@ -65,14 +49,13 @@ config :my_super_app, MySuperApp.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.4.0",
+  version: "4.3.0",
   my_super_app: [
     args: ~w(
-      --config=tailwind.config.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
+      --input=assets/css/app.css
+      --output=priv/static/assets/app.css
     ),
-    cd: Path.expand("../assets", __DIR__)
+    cd: Path.expand("..", __DIR__)
   ]
 
 # Configures Elixir's Logger

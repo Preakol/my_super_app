@@ -55,8 +55,12 @@ defmodule MySuperApp.BlogTest do
       post = post_fixture()
 
       valid_attrs = %{
-        "file_name" => Path.basename("https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg"),
-        "path" => "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg",
+        "file_name" =>
+          Path.basename(
+            "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg"
+          ),
+        "path" =>
+          "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_1.jpg",
         "post_id" => post.id
       }
 
@@ -69,9 +73,14 @@ defmodule MySuperApp.BlogTest do
 
     test "update_picture/2 with valid data updates the picture" do
       picture = picture_fixture()
+
       update_attrs = %{
-        "file_name" => Path.basename("https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_2.jpg"),
-        "path" => "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_2.jpg"
+        "file_name" =>
+          Path.basename(
+            "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_2.jpg"
+          ),
+        "path" =>
+          "https://res.cloudinary.com/dkcseoren/image/upload/start_pictures/funny_cat_2.jpg"
       }
 
       assert {:ok, %Picture{}} = Blog.update_picture(picture, update_attrs)

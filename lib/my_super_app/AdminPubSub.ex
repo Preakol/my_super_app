@@ -16,11 +16,13 @@ defmodule MySuperApp.AdminPubSub do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "roles", :roles_updated)
     {:ok, role}
   end
+
   def broadcast({:ok, %Role{} = role}, :update) do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "roles", :roles_updated)
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "users", :users_updated)
     {:ok, role}
   end
+
   def broadcast({:ok, %Role{} = role}, :delete) do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "roles", :roles_updated)
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "operators", :users_updated)
@@ -35,6 +37,7 @@ defmodule MySuperApp.AdminPubSub do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "site_configs", :operators_updated)
     operator
   end
+
   def broadcast({:ok, %Operator{} = operator}, :delete) do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "operators", :operators_updated)
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "users", :users_updated)
@@ -48,6 +51,7 @@ defmodule MySuperApp.AdminPubSub do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "operators", :users_updated)
     {:ok, user}
   end
+
   def broadcast({:ok, %User{} = user}, :update_email) do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "users", :users_updated)
     {:ok, user}
@@ -71,6 +75,7 @@ defmodule MySuperApp.AdminPubSub do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "blog", :blog_updated)
     {:ok, post}
   end
+
   def broadcast({:ok, %Picture{} = picture}) do
     Phoenix.PubSub.broadcast(MySuperApp.PubSub, "blog", :blog_updated)
     {:ok, picture}

@@ -119,7 +119,7 @@ defmodule MySuperAppWeb.AdminComponents do
 
   attr :published, :boolean, required: true
   attr :disabled, :boolean, default: false
-  attr :rest, :global
+  attr :rest, :global, include: ~w(value)
 
   def publish_toggle(assigns) do
     ~H"""

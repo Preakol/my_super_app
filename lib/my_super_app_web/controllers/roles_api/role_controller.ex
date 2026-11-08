@@ -48,15 +48,18 @@ defmodule MySuperAppWeb.RoleController do
   end
 
   def create(conn, %{"role" => params}) do
-    with true <- check_permissions_param(params["permissions"]), {:ok, role} <- Authority.create_role(params) do
-        conn
-        |> put_status(:created)
-        |> render(:show, role: role)
+    with true <- check_permissions_param(params["permissions"]),
+         {:ok, role} <- Authority.create_role(params) do
+      conn
+      |> put_status(:created)
+      |> render(:show, role: role)
     else
       false ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: "You need to specify \"permissions\", options: 3(Gamechanger), 4(Viewer)."})
+        |> json(%{
+          error: "You need to specify \"permissions\", options: 3(Gamechanger), 4(Viewer)."
+        })
 
       {:error, changeset} ->
         conn
@@ -66,8 +69,9 @@ defmodule MySuperAppWeb.RoleController do
   end
 
   def update(conn, %{"id" => id, "role" => params}) do
-    with %Role{} <- Authority.get_role(id), true <- check_update_params(params),
-     {:ok, updated_role} <- Authority.update_role(id, params) do
+    with %Role{} <- Authority.get_role(id),
+         true <- check_update_params(params),
+         {:ok, updated_role} <- Authority.update_role(id, params) do
       conn
       |> put_status(:ok)
       |> render(:show, role: updated_role)
@@ -80,7 +84,10 @@ defmodule MySuperAppWeb.RoleController do
       false ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: "You can only update the name of the Role and permissions, permissions options: 3(Gamechanger), 4(Viewer)."})
+        |> json(%{
+          error:
+            "You can only update the name of the Role and permissions, permissions options: 3(Gamechanger), 4(Viewer)."
+        })
 
       {:error, changeset} ->
         conn
@@ -115,7 +122,8 @@ defmodule MySuperAppWeb.RoleController do
   defp check_update_params(params) do
     if params["permissions"] do
       Map.keys(params)
-      |> Enum.all?(fn param -> param in ["permissions", "name"] end) && params["permissions"] in [3, 4]
+      |> Enum.all?(fn param -> param in ["permissions", "name"] end) &&
+        params["permissions"] in [3, 4]
     else
       Map.keys(params)
       |> Enum.all?(fn param -> param in ["permissions", "name"] end)

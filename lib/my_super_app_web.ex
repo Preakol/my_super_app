@@ -85,7 +85,6 @@ defmodule MySuperAppWeb do
 
       # Include general helpers for rendering HTML
       unquote(html_helpers())
-      import Surface
     end
   end
 
@@ -120,23 +119,5 @@ defmodule MySuperAppWeb do
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
-  end
-
-  def surface_live_view do
-    quote do
-      use Surface.LiveView,
-        layout: {MySuperAppWeb.SurfaceLayouts, :main}
-
-      unquote(html_helpers())
-    end
-  end
-
-  def admin_surface_live_view do
-    quote do
-      use Surface.LiveView,
-        layout: {MySuperAppWeb.SurfaceLayouts, :admin}
-
-      unquote(html_helpers())
-    end
   end
 end

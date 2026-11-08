@@ -25,21 +25,6 @@ defmodule MySuperAppWeb.Endpoint do
     gzip: false,
     only: MySuperAppWeb.static_paths()
 
-  plug(Plug.Static,
-    at: "/moon/assets",
-    from: :moon,
-    gzip: true,
-    only: ~w(assets themes images fonts svgs favicon.ico robots.txt),
-    cache_control_for_etags: "public, max-age=86400"
-  )
-
-  plug(Plug.Static,
-    at: "/moon_icons/",
-    from: :moon_icons,
-    gzip: true,
-    cache_control_for_etags: "public, max-age=86400"
-  )
-
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do

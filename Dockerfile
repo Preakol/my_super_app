@@ -22,8 +22,6 @@ FROM ${BUILDER_IMAGE} as builder
 
 RUN apt-get update -y && apt-get install -y build-essential git curl && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
-RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
-
 WORKDIR /app
 
 RUN mix local.hex --force && mix local.rebar --force
@@ -46,9 +44,8 @@ COPY priv priv
 COPY lib lib
 COPY assets assets
 
+# compile assets (Tailwind and esbuild are standalone binaries, no Node needed)
 RUN mix assets.setup
-RUN npm install --prefix ./assets
-RUN npm run deploy --prefix ./assets
 RUN mix assets.deploy
 
 # Compile the release

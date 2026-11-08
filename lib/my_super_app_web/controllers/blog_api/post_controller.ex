@@ -12,7 +12,12 @@ defmodule MySuperAppWeb.PostController do
     render(conn, :index, posts: posts)
   end
 
-  defp fetch_posts(%{"start_date" => start_date, "end_date" => end_date, "order_by" => order_by, "dir" => dir}) do
+  defp fetch_posts(%{
+         "start_date" => start_date,
+         "end_date" => end_date,
+         "order_by" => order_by,
+         "dir" => dir
+       }) do
     Blog.get_posts_by_period(start_date, end_date, [{String.to_atom(dir), order_by}])
   end
 
@@ -37,8 +42,8 @@ defmodule MySuperAppWeb.PostController do
   end
 
   def create(conn, %{"post" => post_params}) do
-    with  %User{} = _user <- Repo.get_by(User, id: post_params["user_id"]),
-          {:ok, %Post{} = post} <- Blog.create_post(post_params) do
+    with %User{} = _user <- Repo.get_by(User, id: post_params["user_id"]),
+         {:ok, %Post{} = post} <- Blog.create_post(post_params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/posts/#{post}")

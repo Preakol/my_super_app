@@ -115,32 +115,20 @@ defmodule MySuperAppWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-moon-lg rounded-moon-s-sm",
-        @kind == :info && "bg-green-200 text-green-800 fill-green-900",
-        @kind == :warn && "bg-amber-200 text-amber-600 fill-amber-900",
-        @kind == :error && "bg-rose-200 text-rose-900 fill-rose-900"
+        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-lg ring-1",
+        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500",
+        @kind == :warn && "bg-amber-50 text-amber-800 ring-amber-500",
+        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500"
       ]}
       {@rest}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon
-          :if={@kind == :info}
-          name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/info-icon.svg"
-          class="h-4 w-4"
-        />
-        <.icon
-          :if={@kind == :warn}
-          name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/warn-icon.svg"
-          class="h-4 w-4"
-        />
-        <.icon
-          :if={@kind == :error}
-          name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/error-icon.svg"
-          class="h-4 w-4"
-        />
+        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
+        <.icon :if={@kind == :warn} name="hero-exclamation-triangle-mini" class="h-4 w-4" />
+        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
         <%= @title %>
       </p>
-      <p class="text-moon-14 transition-colors"><%= msg %></p>
+      <p class="mt-2 text-sm leading-5"><%= msg %></p>
       <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
         <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
@@ -163,19 +151,19 @@ defmodule MySuperAppWeb.CoreComponents do
     <div id={@id}>
       <.flash
         kind={:info}
-        title={gettext("Yes! Hell yeah!!")}
+        title={gettext("Success!")}
         flash={@flash}
         phx-connected={JS.hide(to: "##{@id}", time: 3000, transition: "fade-out-scale")}
       />
       <.flash
         kind={:warn}
-        title={gettext("A, Sorry!")}
+        title={gettext("Warning")}
         flash={@flash}
         phx-connected={JS.hide(to: "##{@id}", time: 3000, transition: "fade-out-scale")}
       />
       <.flash
         kind={:error}
-        title={gettext("Oopsie!")}
+        title={gettext("Error!")}
         flash={@flash}
         phx-connected={JS.hide(to: "##{@id}", time: 3000, transition: "fade-out-scale")}
       />
@@ -625,12 +613,6 @@ defmodule MySuperAppWeb.CoreComponents do
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
-    """
-  end
-
-  def icon(assigns) do
-    ~H"""
-    <img src={@name} />
     """
   end
 

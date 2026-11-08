@@ -10,6 +10,5 @@ defmodule MySuperApp.Repo.Migrations.CreateTags do
     end
 
     create unique_index(:tags, [:title])
-
   end
 end

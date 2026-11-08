@@ -28,15 +28,18 @@ defmodule MySuperApp.CasinosAdmins do
       {:ok, operator} =
         %Operator{}
         |> Operator.changeset(attrs)
-        |> Ecto.Changeset.put_assoc(:roles,
-        [
-          %Role{name: "Head of #{attrs["name"]}", permissions: 2},
-          %Role{name: "viewer", permissions: 4},
-          %Role{name: "role_manager", permissions: 3}
-        ])
+        |> Ecto.Changeset.put_assoc(
+          :roles,
+          [
+            %Role{name: "Head of #{attrs["name"]}", permissions: 2},
+            %Role{name: "viewer", permissions: 4},
+            %Role{name: "role_manager", permissions: 3}
+          ]
+        )
         |> Repo.insert()
 
-      attrs["user_id"] |> String.to_integer()
+      attrs["user_id"]
+      |> String.to_integer()
       |> Accounts.update_user_role(operator.roles |> Enum.at(0) |> Map.get(:id))
 
       AdminPubSub.broadcast(operator, :create)
@@ -44,6 +47,7 @@ defmodule MySuperApp.CasinosAdmins do
   end
 
   def get_operator(""), do: nil
+
   def get_operator(id) do
     Operator
     |> Repo.get(id)

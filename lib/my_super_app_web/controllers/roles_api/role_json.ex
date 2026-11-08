@@ -1,5 +1,4 @@
 defmodule MySuperAppWeb.RoleJSON do
-
   @doc """
   Renders a list of roles.
   """

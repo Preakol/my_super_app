@@ -62,8 +62,10 @@ defmodule MySuperAppWeb.SiteConfigController do
   end
 
   def update(conn, %{"id" => id, "site_config" => %{"status" => status}}) do
-    with %SiteConfig{} <- SiteConfigManagement.get_site_config(id), true <- check_status_param(status),
-     {:ok, updated_config} <- SiteConfigManagement.update_site_config(id, %{status: status == "ACTIVE"}) do
+    with %SiteConfig{} <- SiteConfigManagement.get_site_config(id),
+         true <- check_status_param(status),
+         {:ok, updated_config} <-
+           SiteConfigManagement.update_site_config(id, %{status: status == "ACTIVE"}) do
       conn
       |> put_status(:ok)
       |> render(:show, site_config: updated_config)

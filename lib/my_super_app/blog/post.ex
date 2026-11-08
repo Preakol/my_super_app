@@ -7,7 +7,16 @@ defmodule MySuperApp.Blog.Post do
   alias MySuperApp.{Repo, User, Blog.Tag, Blog.Picture}
 
   @colors [
-    "bg-piccolo", "bg-hit", "bg-popo", "bg-krillin", "bg-chichi", "bg-roshi", "bg-dodoria", "bg-cell", "bg-whis", "bg-frieza"
+    "bg-piccolo",
+    "bg-hit",
+    "bg-popo",
+    "bg-krillin",
+    "bg-chichi",
+    "bg-roshi",
+    "bg-dodoria",
+    "bg-cell",
+    "bg-whis",
+    "bg-frieza"
   ]
 
   schema "posts" do
@@ -16,7 +25,12 @@ defmodule MySuperApp.Blog.Post do
     field :published_at, :utc_datetime, default: nil
     timestamps(type: :utc_datetime)
     belongs_to :user, User, foreign_key: :user_id, on_replace: :update
-    many_to_many :tags, Tag, join_through: "posts_tags", on_replace: :delete, on_delete: :delete_all
+
+    many_to_many :tags, Tag,
+      join_through: "posts_tags",
+      on_replace: :delete,
+      on_delete: :delete_all
+
     has_one :picture, Picture
   end
 
@@ -32,12 +46,14 @@ defmodule MySuperApp.Blog.Post do
   def before_delete(post) do
     Repo.get_by(Picture, post_id: post.id)
     |> delete_picture_from_cloud()
+
     post
   end
 
   defp maybe_put_tags(changeset, tags) when not is_nil(tags) do
     put_assoc(changeset, :tags, parse_tags(tags))
   end
+
   defp maybe_put_tags(changeset, tags) when is_nil(tags), do: changeset
 
   defp parse_tags(tags_params) do

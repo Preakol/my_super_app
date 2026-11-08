@@ -7,9 +7,14 @@ defmodule MySuperApp.AuthorityTest do
     {:ok, operator1} = Repo.insert(%Operator{name: "testoperator1"})
     {:ok, operator2} = Repo.insert(%Operator{name: "testoperator2"})
 
-    {:ok, role1} = Repo.insert(%Role{name: "TestAdmin1", permissions: 2, operator_id: operator1.id})
-    {:ok, role2} = Repo.insert(%Role{name: "TestAdmin2", permissions: 3, operator_id: operator1.id})
-    {:ok, role3} = Repo.insert(%Role{name: "TestAdmin3", permissions: 4, operator_id: operator2.id})
+    {:ok, role1} =
+      Repo.insert(%Role{name: "TestAdmin1", permissions: 2, operator_id: operator1.id})
+
+    {:ok, role2} =
+      Repo.insert(%Role{name: "TestAdmin2", permissions: 3, operator_id: operator1.id})
+
+    {:ok, role3} =
+      Repo.insert(%Role{name: "TestAdmin3", permissions: 4, operator_id: operator2.id})
 
     %{role1: role1, role2: role2, role3: role3, operator1: operator1, operator2: operator2}
   end
@@ -32,13 +37,25 @@ defmodule MySuperApp.AuthorityTest do
 
   describe "get_role_names_with_users_by_operator/1" do
     test "returns role names by operator", %{role1: role1, role2: role2, operator1: operator1} do
-      Accounts.register_user(%{login: "testuser1", email: "test@user1.com", password: "testuser1", role_id: role1.id})
-      Accounts.register_user(%{login: "testuser2", email: "test@user2.com", password: "testuser2", role_id: role2.id})
+      Accounts.register_user(%{
+        login: "testuser1",
+        email: "test@user1.com",
+        password: "testuser1",
+        role_id: role1.id
+      })
+
+      Accounts.register_user(%{
+        login: "testuser2",
+        email: "test@user2.com",
+        password: "testuser2",
+        role_id: role2.id
+      })
 
       role1_name = role1.name
       role2_name = role2.name
 
-      assert [^role1_name, ^role2_name] = Authority.get_role_names_with_users_by_operator(operator1.name)
+      assert [^role1_name, ^role2_name] =
+               Authority.get_role_names_with_users_by_operator(operator1.name)
     end
   end
 
@@ -48,7 +65,9 @@ defmodule MySuperApp.AuthorityTest do
     end
 
     test "returns roles by operator name", %{role3: role3, operator2: operator2} do
-      assert Authority.get_roles_by_operator(operator2.name, false) == [%{name: role3.name, id: role3.id}]
+      assert Authority.get_roles_by_operator(operator2.name, false) == [
+               %{name: role3.name, id: role3.id}
+             ]
     end
   end
 
@@ -64,7 +83,13 @@ defmodule MySuperApp.AuthorityTest do
 
   describe "get_role_by_user_id/1" do
     test "returns role for a given user id", %{role1: role1} do
-      {:ok, user} = Accounts.register_user(%{login: "testuser", email: "test@user.com", password: "testuser", role_id: role1.id})
+      {:ok, user} =
+        Accounts.register_user(%{
+          login: "testuser",
+          email: "test@user.com",
+          password: "testuser",
+          role_id: role1.id
+        })
 
       assert Authority.get_role_by_user_id(user.id) == role1
     end
@@ -98,7 +123,9 @@ defmodule MySuperApp.AuthorityTest do
 
   describe "update_role/2" do
     test "updates an existing role", %{role1: role1} do
-      assert {:ok, %Role{name: "Updated Role"}} = Authority.update_role(role1.id, %{name: "Updated Role"})
+      assert {:ok, %Role{name: "Updated Role"}} =
+               Authority.update_role(role1.id, %{name: "Updated Role"})
+
       assert Authority.get_role(role1.id).name == "Updated Role"
     end
   end

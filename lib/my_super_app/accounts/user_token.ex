@@ -60,8 +60,10 @@ defmodule MySuperApp.UserToken do
     query =
       from token in by_token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
-        left_join: role in Role, on: user.role_id == role.id,
-        left_join: operator in Operator, on: role.operator_id == operator.id,
+        left_join: role in Role,
+        on: user.role_id == role.id,
+        left_join: operator in Operator,
+        on: role.operator_id == operator.id,
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
         select: %{
           id: user.id,
