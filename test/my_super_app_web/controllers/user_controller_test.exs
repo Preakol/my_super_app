@@ -1,6 +1,8 @@
 defmodule MySuperAppWeb.UserControllerTest do
   use MySuperAppWeb.ConnCase
 
+  setup :authorize_api
+
   alias MySuperApp.{Accounts, Repo, User}
 
   @create_attrs %{email: "test@example.com", login: "test_user", password: "password123"}

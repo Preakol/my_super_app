@@ -1,6 +1,8 @@
 defmodule MySuperAppWeb.PictureControllerTest do
   use MySuperAppWeb.ConnCase
 
+  setup :authorize_api
+
   import MySuperApp.BlogFixtures
 
   setup %{conn: conn} do

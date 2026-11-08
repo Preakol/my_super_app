@@ -100,22 +100,37 @@ defmodule MySuperAppWeb.Router do
     delete "/users/log_out", UserSessionController, :delete
   end
 
+  pipeline :api_write do
+    plug MySuperAppWeb.Plugs.RequireApiToken
+  end
+
   scope "/api", MySuperAppWeb do
     pipe_through :api
 
     get "/pictures/by_post/:post_id", PictureController, :show_by_post
-    resources "/pictures", PictureController, only: [:index, :show, :create, :update, :delete]
+    resources "/pictures", PictureController, only: [:index, :show]
 
     get "/users/by_email/:email", UserController, :show
     get "/users/by_name/:name", UserController, :show
-    resources "/users", UserController, only: [:index, :show, :create, :update, :delete]
+    resources "/users", UserController, only: [:index, :show]
 
-    resources "/configs", SiteConfigController, only: [:index, :show, :create, :update, :delete]
+    resources "/configs", SiteConfigController, only: [:index, :show]
 
     get "/roles/by_user/:user_id", RoleController, :show
-    resources "/roles", RoleController, only: [:index, :show, :create, :update, :delete]
+    resources "/roles", RoleController, only: [:index, :show]
 
-    resources "/posts", PostController, only: [:index, :show, :create, :update, :delete]
-    resources "/tags", TagController, only: [:index, :show, :create, :update, :delete]
+    resources "/posts", PostController, only: [:index, :show]
+    resources "/tags", TagController, only: [:index, :show]
+  end
+
+  scope "/api", MySuperAppWeb do
+    pipe_through [:api, :api_write]
+
+    resources "/pictures", PictureController, only: [:create, :update, :delete]
+    resources "/users", UserController, only: [:create, :update, :delete]
+    resources "/configs", SiteConfigController, only: [:create, :update, :delete]
+    resources "/roles", RoleController, only: [:create, :update, :delete]
+    resources "/posts", PostController, only: [:create, :update, :delete]
+    resources "/tags", TagController, only: [:create, :update, :delete]
   end
 end

@@ -1,6 +1,8 @@
 defmodule MySuperAppWeb.SiteConfigControllerTest do
   use MySuperAppWeb.ConnCase
 
+  setup :authorize_api
+
   alias MySuperApp.{SiteConfigManagement, Repo, SiteConfig, Operator}
 
   @operator_attrs %{name: "John Doe"}

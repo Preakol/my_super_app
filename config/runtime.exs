@@ -35,6 +35,9 @@ end
 # Test env keeps the stub credentials from config/test.exs. In dev the keys are
 # optional: without them the client returns {:error, {:not_configured, keys}}.
 if config_env() != :test do
+  # Without API_TOKEN (allowed outside prod) the write API answers 401.
+  config :my_super_app, :api_token, fetch_env.("API_TOKEN")
+
   config :my_super_app, MySuperApp.Cloudinary.Client,
     api_key: fetch_env.("CLOUDINARY_API_KEY"),
     secret: fetch_env.("CLOUDINARY_SECRET"),

@@ -39,6 +39,12 @@ defmodule MySuperAppWeb.ConnCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
+  @doc "Setup callback that sends the test API token, for the write API."
+  def authorize_api(%{conn: conn}) do
+    token = Application.fetch_env!(:my_super_app, :api_token)
+    %{conn: Plug.Conn.put_req_header(conn, "authorization", "Bearer " <> token)}
+  end
+
   @doc """
   Logs the given `user` into the `conn`.
 

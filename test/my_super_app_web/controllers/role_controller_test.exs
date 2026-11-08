@@ -1,6 +1,8 @@
 defmodule MySuperAppWeb.RoleControllerTest do
   use MySuperAppWeb.ConnCase
 
+  setup :authorize_api
+
   alias MySuperApp.{Authority, Accounts, Role, Repo, Operator}
 
   @operator_attrs %{name: "John Doe"}

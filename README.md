@@ -51,7 +51,18 @@ with it, and `GET /api/posts?q=` returns posts ranked by `ts_rank`.
 
 **JSON API** under `/api`: users, roles, site configs, posts, tags and
 pictures (index/show/create/update/delete), plus lookups such as
-`/api/users/by_email/:email` and `/api/posts?date=...`.
+`/api/users/by_email/:email` and `/api/posts?date=...`. Reads (`GET`) are
+public. Create, update and delete need the API token, and requests without
+it get `401`:
+
+```sh
+curl -X POST http://localhost:4000/api/tags \
+  -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"tag": {"title": "news"}}'
+```
+
+The token is compared in constant time (`Plug.Crypto.secure_compare/2`).
+Without `API_TOKEN` (allowed in dev) every write request is rejected.
 
 ## Tech stack
 
@@ -100,6 +111,7 @@ credentials. In dev, emails go to the local mailbox at `/dev/mailbox`.
 | `CLOUDINARY_API_KEY`, `CLOUDINARY_SECRET`, `CLOUDINARY_CLOUD_NAME` | dev (uploads), prod | picture storage |
 | `SENDGRID_API_KEY`, `MAIL_FROM` | prod | outgoing email |
 | `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST` | prod | standard Phoenix release settings |
+| `API_TOKEN` | prod; dev for API writes | Bearer token for create/update/delete in the JSON API, e.g. `mix phx.gen.secret` |
 | `SEED_PASSWORD` | optional, prod seeding | password for the demo accounts |
 
 In production, the app refuses to boot when a required variable is missing.
@@ -129,7 +141,7 @@ The `Dockerfile` builds a release. Migrations run as the Fly
 fly apps create my-super-app-demo        # or change `app` in fly.toml
 fly postgres create --name my-super-app-db
 fly postgres attach my-super-app-db      # sets DATABASE_URL
-fly secrets set SECRET_KEY_BASE="$(mix phx.gen.secret)" \
+fly secrets set SECRET_KEY_BASE="$(mix phx.gen.secret)" API_TOKEN="$(mix phx.gen.secret)" \
   CLOUDINARY_API_KEY=... CLOUDINARY_SECRET=... CLOUDINARY_CLOUD_NAME=... \
   SENDGRID_API_KEY=... MAIL_FROM=... SEED_PASSWORD=...
 fly deploy
@@ -143,7 +155,4 @@ fly ssh console -C '/app/bin/my_super_app rpc "MySuperApp.Release.seed()"'
 
 ## Known limitations
 
-- The JSON API has no authentication or authorization. Anyone who can reach
-  it can create, change and delete records. Keep it in mind before exposing
-  a deployment publicly.
 - Times are shown in UTC.
