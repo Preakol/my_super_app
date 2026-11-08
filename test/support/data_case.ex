@@ -24,12 +24,22 @@ defmodule MySuperApp.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import MySuperApp.DataCase
+      import Mox
     end
   end
 
   setup tags do
     MySuperApp.DataCase.setup_sandbox(tags)
+    MySuperApp.DataCase.stub_cloudinary()
     :ok
+  end
+
+  @doc """
+  Routes Cloudinary calls to an in-memory stub so no test reaches the network.
+  Tests that need a specific response override it with `Mox.expect/4`.
+  """
+  def stub_cloudinary do
+    Mox.stub_with(MySuperApp.CloudinaryMock, MySuperApp.CloudinaryStub)
   end
 
   @doc """

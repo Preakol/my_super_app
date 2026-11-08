@@ -28,11 +28,13 @@ defmodule MySuperAppWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import MySuperAppWeb.ConnCase
+      import Mox
     end
   end
 
   setup tags do
     MySuperApp.DataCase.setup_sandbox(tags)
+    MySuperApp.DataCase.stub_cloudinary()
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 

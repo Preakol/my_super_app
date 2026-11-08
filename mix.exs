@@ -61,13 +61,14 @@ defmodule MySuperApp.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:pbkdf2_elixir, "~> 2.0"},
       {:tzdata, "~> 1.1"},
-      {:cloudex, "~> 1.4"},
       {:flashy, "~> 0.2"},
       {:ecto_hooks, "~> 1.2"},
-      {:sendgrid, "~> 2.0"},
-      {:oban, "~> 2.17"}
+      {:oban, "~> 2.17"},
+      {:req, "~> 0.7"},
+      {:mox, "~> 1.2", only: :test}
     ]
   end
+
   # Aliases are shortcuts or tasks specific to the current project.
   # For example, to install project dependencies and perform other setup tasks, run:
   #
@@ -78,13 +79,18 @@ defmodule MySuperApp.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build", "ecto.reset"],
       "assets.build": ["cmd --cd assets npm run build", "esbuild default"],
-      "assets.setup": ["cmd --cd assets npm i", "cmd --cd deps/moon/assets npm i", "esbuild.install --if-missing"],
+      "assets.setup": [
+        "cmd --cd assets npm i",
+        "cmd --cd deps/moon/assets npm i",
+        "esbuild.install --if-missing"
+      ],
       "assets.deploy": [
         "assets.setup",
         "assets.build",
         "cmd --cd assets npm run deploy",
         "esbuild default --minify",
-        "phx.digest"],
+        "phx.digest"
+      ],
       "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"]
     ]
   end

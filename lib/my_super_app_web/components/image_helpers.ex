@@ -1,50 +1,38 @@
 defmodule MySuperAppWeb.ImageHelpers do
   @moduledoc false
 
-  @env System.get_env("MIX_ENV")
+  alias MySuperApp.Cloudinary
 
   def get_filename_and_format(file) do
-    filename =
-      file
-      |> Path.rootname()
-
-    format =
-      String.split(file, ".")
-      |> Enum.at(-1)
-
-    {filename, format}
+    {Path.rootname(file), file |> String.split(".") |> List.last()}
   end
 
-  def get_picture_attrs(%Cloudex.UploadedImage{secure_url: url_path}, post_id) do
+  def get_picture_attrs(%{url: url}, post_id) do
     %{
-      "file_name" => Path.basename(url_path),
-      "path" => url_path,
-      "post_id" => post_id == "" && nil || post_id
+      "file_name" => Path.basename(url),
+      "path" => url,
+      "post_id" => if(post_id == "", do: nil, else: post_id)
     }
   end
 
   def upload_picture_to_cloud({filename, format}, path) do
-    Cloudex.upload(path, upload_attrs(filename, format))
+    Cloudinary.upload(path,
+      folder: Cloudinary.folder("posts/pictures"),
+      public_id: "#{Pbkdf2.Tools.get_random_string(7)}/#{filename}",
+      format: format
+    )
   end
+
+  @doc """
+  Removes the picture's file from Cloudinary. A picture without a stored
+  path (or with a path that isn't ours) has nothing to remove.
+  """
+  def delete_picture_from_cloud(nil), do: :ok
 
   def delete_picture_from_cloud(picture) do
-    get_picture_path(picture)
-    |> extract_public_id()
-    |> Cloudex.delete()
-  end
-
-  defp get_picture_path(nil), do: ""
-
-  defp get_picture_path(picture), do: picture.path
-
-  defp extract_public_id(url) do
-    case Regex.run(~r/#{@env}\/[^.]+/, url) do
-      [match] -> match
-      _ -> ""
+    case Cloudinary.public_id_from_url(picture.path) do
+      {:ok, public_id} -> Cloudinary.delete(public_id)
+      :error -> :ok
     end
-  end
-
-  defp upload_attrs(filename, format) do
-    %{folder: "#{@env}/posts/pictures", public_id: "#{Pbkdf2.Tools.get_random_string(7)}/#{filename}", format: format}
   end
 end

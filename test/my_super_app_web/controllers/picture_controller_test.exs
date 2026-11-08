@@ -61,27 +61,48 @@ defmodule MySuperAppWeb.PictureControllerTest do
       assert %{"error" => "There is no post with id -1."} = json_response(conn, 404)
     end
 
+    test "returns 502 and stores nothing when Cloudinary is unavailable", %{conn: conn} do
+      expect(MySuperApp.CloudinaryMock, :upload, fn _path, _opts ->
+        {:error, {:http_error, 500, %{}}}
+      end)
+
+      file = %Plug.Upload{filename: "test_image.jpg", path: "test/support/uploads/test_image.jpg"}
+
+      conn = post(conn, ~p"/api/pictures", %{file: file})
+
+      assert json_response(conn, 502)["error"] =~ "Image storage is unavailable"
+      assert MySuperApp.Blog.list_pictures() == []
+    end
+
     test "returns 409 if picture for post already exists", %{conn: conn} do
       picture = picture_fixture()
 
       file = %Plug.Upload{filename: "test_image.jpg", path: "test/support/uploads/test_image.jpg"}
       conn = post(conn, ~p"/api/pictures", %{file: file, post_id: picture.post_id})
 
-      assert json_response(conn, 409)["error"] == "Picture for post with id #{picture.post_id} already exists."
+      assert json_response(conn, 409)["error"] ==
+               "Picture for post with id #{picture.post_id} already exists."
     end
   end
 
   describe "update" do
     test "updates a picture", %{conn: conn} do
       picture = picture_fixture()
-      file = %Plug.Upload{filename: "updated_image.jpg", path: "test/support/uploads/updated_image.jpg"}
+
+      file = %Plug.Upload{
+        filename: "updated_image.jpg",
+        path: "test/support/uploads/updated_image.jpg"
+      }
 
       conn = put(conn, ~p"/api/pictures/#{picture.id}", %{file: file})
       assert json_response(conn, 200)["data"]["file_name"] == "updated_image.jpg"
     end
 
     test "returns 404 if picture not found", %{conn: conn} do
-      file = %Plug.Upload{filename: "updated_image.jpg", path: "test/support/uploads/updated_image.jpg"}
+      file = %Plug.Upload{
+        filename: "updated_image.jpg",
+        path: "test/support/uploads/updated_image.jpg"
+      }
 
       conn = put(conn, ~p"/api/pictures/-1", %{file: file})
       assert json_response(conn, 404)["error"] == "There is no picture with id -1."

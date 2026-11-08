@@ -12,6 +12,9 @@ config :my_super_app, Oban,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10, email: 5]
 
+config :my_super_app, :cloudinary_client, MySuperApp.Cloudinary.Client
+config :my_super_app, :cloudinary_folder, to_string(config_env())
+
 config :my_super_app,
   ecto_repos: [MySuperApp.Repo],
   generators: [timestamp_type: :utc_datetime]

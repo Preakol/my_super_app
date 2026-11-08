@@ -5,7 +5,16 @@ config :pbkdf2_elixir, :rounds, 1
 
 config :my_super_app, Oban, testing: :inline
 
-config :sendgrid, sandbox_enable: true
+config :my_super_app, :mail_from, "my-super-app@example.com"
+
+config :my_super_app, :cloudinary_client, MySuperApp.CloudinaryMock
+
+config :my_super_app, MySuperApp.Cloudinary.Client,
+  api_key: "test-api-key",
+  secret: "test-api-secret",
+  cloud_name: "test-cloud"
+
+config :my_super_app, :cloudinary_req_options, plug: {Req.Test, MySuperApp.Cloudinary.Client}
 
 # Configure your database
 #

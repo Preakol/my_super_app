@@ -20,30 +20,26 @@ if System.get_env("PHX_SERVER") do
   config :my_super_app, MySuperAppWeb.Endpoint, server: true
 end
 
-fetch_required_env = fn name ->
+fetch_env = fn name ->
   case System.get_env(name) do
     value when value in [nil, ""] ->
-      if config_env() == :prod do
-        raise "environment variable #{name} is missing. See .env.example."
-      else
-        # Cloudex refuses to boot with nil settings, so dev/test get an explicit
-        # placeholder; uploads and emails then fail loudly at call time instead.
-        "not-configured"
-      end
+      if config_env() == :prod,
+        do: raise("environment variable #{name} is missing. See .env.example."),
+        else: nil
 
     value ->
       value
   end
 end
 
-config :sendgrid, api_key: fetch_required_env.("SENDGRID_API_KEY")
-
-config :cloudex,
-  api_key: fetch_required_env.("CLOUDINARY_API_KEY"),
-  secret: fetch_required_env.("CLOUDINARY_SECRET"),
-  cloud_name: fetch_required_env.("CLOUDINARY_CLOUD_NAME")
-
-config :my_super_app, :mail_from, fetch_required_env.("MAIL_FROM")
+# Test env keeps the stub credentials from config/test.exs. In dev the keys are
+# optional: without them the client returns {:error, {:not_configured, keys}}.
+if config_env() != :test do
+  config :my_super_app, MySuperApp.Cloudinary.Client,
+    api_key: fetch_env.("CLOUDINARY_API_KEY"),
+    secret: fetch_env.("CLOUDINARY_SECRET"),
+    cloud_name: fetch_env.("CLOUDINARY_CLOUD_NAME")
+end
 
 if config_env() == :prod do
   database_url =
@@ -122,21 +118,9 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Also, you may need to configure the Swoosh API client of your choice if you
-  # are not using SMTP. Here is an example of the configuration:
-  #
-  #     config :my_super_app, MySuperApp.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # For this example you need include a HTTP client required by Swoosh API client.
-  # Swoosh supports Hackney and Finch out of the box:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+  config :my_super_app, MySuperApp.Mailer,
+    adapter: Swoosh.Adapters.Sendgrid,
+    api_key: fetch_env.("SENDGRID_API_KEY")
+
+  config :my_super_app, :mail_from, fetch_env.("MAIL_FROM")
 end
