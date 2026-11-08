@@ -6,81 +6,49 @@ defmodule MySuperAppWeb.PictureController do
   import MySuperAppWeb.ImageHelpers
 
   alias MySuperApp.{Blog, Blog.Picture, Blog.Post, Repo}
+  alias MySuperAppWeb.SortParams
 
   action_fallback MySuperAppWeb.FallbackController
 
-  def index(conn, %{"start_date" => _start_date, "end_date" => _end_date} = params) do
-    case fetch_pictures(params) do
-      [_ | _] = pictures ->
-        render(conn, :index, paths: pictures)
-
-      {:error, _} ->
-        conn
-        |> put_status(:bad_request)
-        |> json(%{error: "Bad pattern for date and time, right pattern: yyyy-mm-ddThh:mm:ssZ"})
-    end
-  end
-
-  def index(conn, %{"date" => _date} = params) do
-    case fetch_pictures(params) do
-      [_ | _] = pictures ->
-        render(conn, :index, paths: pictures)
-
-      {:error, _} ->
-        conn
-        |> put_status(:bad_request)
-        |> json(%{error: "Bad pattern for date and time, right pattern: yyyy-mm-ddThh:mm:ssZ"})
-    end
-  end
-
   def index(conn, params) do
-    case fetch_pictures(params) do
-      [_ | _] = pictures ->
-        render(conn, :index, pictures: pictures)
-
-      [] ->
+    with {:ok, sorting} <-
+           SortParams.parse(params, Blog.picture_sort_options(), Blog.default_picture_sorting()),
+         {:ok, key, [_ | _] = pictures} <- fetch_pictures(params, sorting) do
+      render(conn, :index, [{key, pictures}])
+    else
+      {:ok, _key, []} ->
         conn
         |> put_status(:not_found)
         |> json(%{data: [], message: "No matching records found", status: "not_found"})
+
+      {:error, message} when is_binary(message) ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: message})
+
+      {:error, _invalid_date} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Bad pattern for date and time, right pattern: yyyy-mm-ddThh:mm:ssZ"})
     end
   end
 
-  defp fetch_pictures(params) when map_size(params) == 0 do
-    Blog.list_pictures()
-  end
+  defp fetch_pictures(%{"author_email" => email}, _sorting),
+    do: {:ok, :pictures, Blog.get_pictures_by_author_email(email)}
 
-  defp fetch_pictures(%{"author_email" => author_email}) do
-    Blog.get_pictures_by_author_email(author_email)
-  end
+  defp fetch_pictures(%{"author_name" => name}, _sorting),
+    do: {:ok, :pictures, Blog.get_pictures_by_author_name(name)}
 
-  defp fetch_pictures(%{"author_name" => author_name}) do
-    Blog.get_pictures_by_author_name(author_name)
-  end
+  defp fetch_pictures(%{"start_date" => start_date, "end_date" => end_date}, sorting),
+    do: with_paths(Blog.get_pictures_by_period(start_date, end_date, sorting))
 
-  defp fetch_pictures(%{
-         "start_date" => start_date,
-         "end_date" => end_date,
-         "order_by" => order_by,
-         "dir" => dir
-       }) do
-    Blog.get_pictures_by_period(start_date, end_date, [{String.to_atom(dir), order_by}])
-  end
+  defp fetch_pictures(%{"date" => date}, sorting),
+    do: with_paths(Blog.get_pictures_by_date(date, sorting))
 
-  defp fetch_pictures(%{"start_date" => start_date, "end_date" => end_date}) do
-    Blog.get_pictures_by_period(start_date, end_date)
-  end
+  defp fetch_pictures(_params, sorting), do: {:ok, :pictures, Blog.list_pictures(sorting)}
 
-  defp fetch_pictures(%{"date" => date, "order_by" => order_by, "dir" => dir}) do
-    Blog.get_pictures_by_date(date, [{String.to_atom(dir), order_by}])
-  end
-
-  defp fetch_pictures(%{"date" => date}) do
-    Blog.get_pictures_by_date(date)
-  end
-
-  defp fetch_pictures(%{"order_by" => order_by, "dir" => dir}) do
-    Blog.list_pictures([{String.to_atom(dir), order_by}])
-  end
+  defp with_paths({:error, reason}), do: {:error, reason}
+  defp with_paths(pictures) when is_list(pictures), do: {:ok, :paths, pictures}
 
   def show_by_post(conn, %{"post_id" => post_id}) do
     case Blog.get_picture_by_post_id(post_id) do

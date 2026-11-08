@@ -4,13 +4,12 @@ defmodule MySuperAppWeb.PostController do
   use MySuperAppWeb, :controller
 
   alias MySuperApp.{Blog, Blog.Post, Repo, User}
+  alias MySuperAppWeb.SortParams
 
   action_fallback MySuperAppWeb.FallbackController
 
-  @directions %{"asc" => :asc, "desc" => :desc}
-
   def index(conn, params) do
-    case parse_sorting(params) do
+    case SortParams.parse(params, Blog.post_sort_options(), []) do
       {:ok, sorting} ->
         render(conn, :index, posts: fetch_posts(params, sorting))
 
@@ -20,21 +19,6 @@ defmodule MySuperAppWeb.PostController do
         |> json(%{error: message})
     end
   end
-
-  defp parse_sorting(%{"order_by" => order_by, "dir" => dir}) do
-    cond do
-      not Map.has_key?(@directions, dir) ->
-        {:error, "dir must be one of: asc, desc"}
-
-      order_by not in Blog.post_sort_options() ->
-        {:error, "order_by must be one of: " <> Enum.join(Blog.post_sort_options(), ", ")}
-
-      true ->
-        {:ok, [{Map.fetch!(@directions, dir), order_by}]}
-    end
-  end
-
-  defp parse_sorting(_params), do: {:ok, []}
 
   defp fetch_posts(%{"q" => text}, _sorting) when is_binary(text), do: Blog.search_posts(text)
 

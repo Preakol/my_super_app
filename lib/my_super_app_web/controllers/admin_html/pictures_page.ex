@@ -6,7 +6,7 @@ defmodule MySuperAppWeb.PicturesPage do
 
   alias MySuperApp.{Accounts, AdminPubSub, Blog, Blog.Picture}
 
-  @sorting_options ["Upload At", "File Name"]
+  @sorting_options Blog.picture_sort_options()
   @default_filters %{search: "", tags: [], extension: "", sorting: {:desc, "Upload At"}}
   @upload_opts [accept: ~w(.jpg .jpeg .png), max_entries: 1, max_file_size: 10_000_000]
 

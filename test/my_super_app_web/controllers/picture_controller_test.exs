@@ -23,6 +23,52 @@ defmodule MySuperAppWeb.PictureControllerTest do
       conn = get(conn, ~p"/api/pictures?date=#{DateTime.to_iso8601(picture.upload_at)}")
       assert json_response(conn, 200)["paths"] != []
     end
+
+    test "sorts by a whitelisted column and direction", %{conn: conn} do
+      for name <- ["b.png", "a.png", "c.png"] do
+        {:ok, _picture} =
+          MySuperApp.Blog.create_picture(%{
+            "file_name" => name,
+            "path" => "https://res.cloudinary.com/demo/image/upload/test/#{name}"
+          })
+      end
+
+      names = fn dir ->
+        conn
+        |> get(~p"/api/pictures", order_by: "File Name", dir: dir)
+        |> json_response(200)
+        |> Map.fetch!("data")
+        |> Enum.map(& &1["file_name"])
+      end
+
+      assert names.("asc") == ["a.png", "b.png", "c.png"]
+      assert names.("desc") == ["c.png", "b.png", "a.png"]
+    end
+
+    test "rejects unknown sort directions and columns with 400", %{conn: conn} do
+      assert %{"error" => "dir must be one of: asc, desc"} =
+               conn
+               |> get(~p"/api/pictures",
+                 order_by: "File Name",
+                 dir: "up_#{System.unique_integer()}"
+               )
+               |> json_response(400)
+
+      assert %{"error" => "order_by must be one of: Upload At, File Name"} =
+               conn
+               |> get(~p"/api/pictures",
+                 date: "2024-01-01T00:00:00Z",
+                 order_by: "drop_#{System.unique_integer()}",
+                 dir: "asc"
+               )
+               |> json_response(400)
+    end
+
+    test "returns 404 instead of crashing when a date matches nothing", %{conn: conn} do
+      assert conn
+             |> get(~p"/api/pictures?date=2001-01-01T00:00:00Z")
+             |> json_response(404)
+    end
   end
 
   describe "show" do

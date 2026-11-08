@@ -341,7 +341,12 @@ defmodule MySuperApp.Blog do
     Tag.changeset(%Tag{}, attrs)
   end
 
-  def list_pictures(sorting \\ [{:desc, "Upload At"}]) do
+  @doc "Columns pictures can be sorted by, as accepted by the `sorting` arguments."
+  def picture_sort_options, do: ["Upload At", "File Name"]
+
+  def default_picture_sorting, do: [{:desc, "Upload At"}]
+
+  def list_pictures(sorting \\ default_picture_sorting()) do
     from(pic in Picture,
       left_join: post in assoc(pic, :post),
       preload: [post: post]
@@ -350,7 +355,7 @@ defmodule MySuperApp.Blog do
     |> Repo.all()
   end
 
-  def get_pictures_by_date(date, sorting \\ [{:desc, "Upload At"}]) do
+  def get_pictures_by_date(date, sorting \\ default_picture_sorting()) do
     case DateTime.from_iso8601(date) do
       {_, date, _} ->
         from(p in Picture,
@@ -364,7 +369,7 @@ defmodule MySuperApp.Blog do
     end
   end
 
-  def get_pictures_by_period(start_date, end_date, sorting \\ [{:desc, "Upload At"}]) do
+  def get_pictures_by_period(start_date, end_date, sorting \\ default_picture_sorting()) do
     with {_, start_date, _} <- DateTime.from_iso8601(start_date),
          {_, end_date, _} <- DateTime.from_iso8601(end_date) do
       from(p in Picture,
