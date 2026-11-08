@@ -439,6 +439,12 @@ defmodule MySuperAppWeb.AdminComponents do
     """
   end
 
+  @doc "Human-readable text for LiveView upload errors (all uploads accept one image up to 10 MB)."
+  def upload_error_message(:too_large), do: "The file is larger than 10 MB"
+  def upload_error_message(:not_accepted), do: "Only .jpg, .jpeg and .png files are accepted"
+  def upload_error_message(:too_many_files), do: "Only one file at a time"
+  def upload_error_message(_other), do: "The file can't be uploaded"
+
   @doc "Formats a timestamp the way all admin tables show it."
   def format_datetime(nil), do: "—"
   def format_datetime(datetime), do: Calendar.strftime(datetime, "%b %d, %Y, %H:%M UTC")

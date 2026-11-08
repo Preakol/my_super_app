@@ -34,11 +34,13 @@ defmodule MySuperApp.Accounts do
     |> user_with_op_and_role_query()
     |> Repo.all()
   end
+
   def get_users_by_role(%{"role_id" => role_id}) do
     from(u in User, where: u.role_id == ^role_id)
     |> user_with_op_and_role_query()
     |> Repo.all()
   end
+
   def get_users_by_role(_), do: []
 
   def delete_user(id) do
@@ -67,7 +69,7 @@ defmodule MySuperApp.Accounts do
   def remove_user_role(user_id) do
     User
     |> Repo.get(user_id)
-    |> User.role_changeset(%{role_id: nil}, [require: false])
+    |> User.role_changeset(%{role_id: nil}, require: false)
     |> Repo.update()
     |> AdminPubSub.broadcast(:update_role)
   end
@@ -80,6 +82,7 @@ defmodule MySuperApp.Accounts do
   end
 
   def get_user(""), do: nil
+
   def get_user(id) do
     from(user in User,
       left_join: role in assoc(user, :role),
@@ -105,12 +108,14 @@ defmodule MySuperApp.Accounts do
   end
 
   def get_main_admin_by_operator(nil), do: nil
+
   def get_main_admin_by_operator(operator_name) do
     from(user in User,
       join: role in assoc(user, :role),
       join: operator in assoc(role, :operator),
       where: role.permissions == 2 and operator.name == ^operator_name
-    ) |> Repo.one()
+    )
+    |> Repo.one()
   end
 
   def get_user_by_email_or_login_and_password(email_or_login, password)
@@ -148,11 +153,6 @@ defmodule MySuperApp.Accounts do
   def change_user_role(user, attrs \\ %{}) do
     user
     |> User.role_changeset(attrs)
-  end
-
-  def change_avatar_image(attrs \\ %{}) do
-    %User{}
-    |> User.avatar_changeset(attrs)
   end
 
   def apply_user_email(user, password, attrs) do
@@ -197,7 +197,9 @@ defmodule MySuperApp.Accounts do
     end
   end
 
-  defp add_operator_filter(query, operator_name) when is_nil(operator_name) or operator_name == "Select Operator" , do: query
+  defp add_operator_filter(query, operator_name)
+       when is_nil(operator_name) or operator_name == "Select Operator", do: query
+
   defp add_operator_filter(query, operator_name) do
     from(user in query,
       left_join: role in assoc(user, :role),
@@ -206,7 +208,9 @@ defmodule MySuperApp.Accounts do
     )
   end
 
-  defp add_role_filter(query, role_name) when is_nil(role_name) or role_name == "Select Role" , do: query
+  defp add_role_filter(query, role_name) when is_nil(role_name) or role_name == "Select Role",
+    do: query
+
   defp add_role_filter(query, role_name) do
     from(user in query,
       left_join: role in assoc(user, :role),
@@ -224,7 +228,8 @@ defmodule MySuperApp.Accounts do
     from(user in query,
       left_join: role in assoc(user, :role),
       left_join: operator in assoc(role, :operator),
-      where: is_nil(role.permissions) or role.permissions != 1, #role.permissions > 1
+      # role.permissions > 1
+      where: is_nil(role.permissions) or role.permissions != 1,
       select: %{
         id: user.id,
         login: user.login,

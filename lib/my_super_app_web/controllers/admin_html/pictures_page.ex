@@ -231,11 +231,6 @@ defmodule MySuperAppWeb.PicturesPage do
     end)
   end
 
-  defp upload_error_message(:too_large), do: "The file is larger than 10 MB"
-  defp upload_error_message(:not_accepted), do: "Only .jpg, .jpeg and .png files are accepted"
-  defp upload_error_message(:too_many_files), do: "Only one file at a time"
-  defp upload_error_message(_other), do: "The file can't be uploaded"
-
   attr :upload, :any, required: true
   attr :label, :string, required: true
 
