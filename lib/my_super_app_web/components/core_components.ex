@@ -123,9 +123,21 @@ defmodule MySuperAppWeb.CoreComponents do
       {@rest}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/info-icon.svg" class="h-4 w-4" />
-        <.icon :if={@kind == :warn} name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/warn-icon.svg" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/error-icon.svg" class="h-4 w-4" />
+        <.icon
+          :if={@kind == :info}
+          name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/info-icon.svg"
+          class="h-4 w-4"
+        />
+        <.icon
+          :if={@kind == :warn}
+          name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/warn-icon.svg"
+          class="h-4 w-4"
+        />
+        <.icon
+          :if={@kind == :error}
+          name="https://res.cloudinary.com/dkcseoren/image/upload/v1725391313/icons/error-icon.svg"
+          class="h-4 w-4"
+        />
         <%= @title %>
       </p>
       <p class="text-moon-14 transition-colors"><%= msg %></p>
@@ -618,7 +630,7 @@ defmodule MySuperAppWeb.CoreComponents do
 
   def icon(assigns) do
     ~H"""
-    <img src={@name}>
+    <img src={@name} />
     """
   end
 

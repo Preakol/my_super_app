@@ -357,26 +357,89 @@ defmodule MySuperAppWeb.AdminComponents do
     """
   end
 
-  attr :column, :string, required: true
-  attr :label, :string, required: true
-  attr :sort, :map, required: true, doc: "%{column: string | nil, direction: :asc | :desc}"
-  attr :on_sort, :string, required: true
+  attr :id, :string, required: true
+  attr :rows, :list, required: true
+  attr :sort, :map, default: %{column: nil, direction: :asc}
+  attr :on_sort, :string, default: nil, doc: "event pushed with `value` = the column name"
+  attr :row_id, :any, default: nil, doc: "function deriving a DOM id from a row"
+  attr :empty_text, :string, default: "Nothing found"
 
-  def sortable_header(assigns) do
+  slot :col, required: true do
+    attr :label, :string
+    attr :sort_by, :atom, doc: "makes the header clickable and sorts by this key"
+  end
+
+  slot :action
+
+  def data_table(assigns) do
+    ~H"""
+    <div class="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <table id={@id} class="w-full text-left text-sm">
+        <thead class="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
+          <tr>
+            <th :for={col <- @col} scope="col" class="px-4 py-2.5 font-medium">
+              <%= if col[:sort_by] && @on_sort do %>
+                <button
+                  type="button"
+                  phx-click={@on_sort}
+                  value={col.sort_by}
+                  class="inline-flex items-center gap-1 hover:text-zinc-900"
+                >
+                  <%= col.label %>
+                  <.icon
+                    :if={@sort.column == col.sort_by}
+                    name={
+                      if @sort.direction == :asc, do: "hero-chevron-up", else: "hero-chevron-down"
+                    }
+                    class="h-3 w-3"
+                  />
+                </button>
+              <% else %>
+                <%= col[:label] %>
+              <% end %>
+            </th>
+            <th :if={@action != []} scope="col" class="px-4 py-2.5">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100">
+          <tr :if={@rows == []}>
+            <td colspan={length(@col) + 1} class="px-4 py-6 text-center text-zinc-500">
+              <%= @empty_text %>
+            </td>
+          </tr>
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="hover:bg-zinc-50">
+            <td :for={col <- @col} class="px-4 py-2.5 text-zinc-800"><%= render_slot(col, row) %></td>
+            <td :if={@action != []} class="px-4 py-2.5">
+              <div class="flex justify-end gap-1"><%= render_slot(@action, row) %></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    """
+  end
+
+  attr :icon, :string, required: true
+  attr :label, :string, required: true
+  attr :rest, :global, include: ~w(value disabled)
+
+  def icon_button(assigns) do
     ~H"""
     <button
       type="button"
-      phx-click={@on_sort}
-      value={@column}
-      class="inline-flex items-center gap-1 font-normal hover:text-zinc-900"
+      aria-label={@label}
+      title={@label}
+      class="rounded-md p-1.5 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40"
+      {@rest}
     >
-      <%= @label %>
-      <.icon
-        :if={@sort.column == @column}
-        name={if @sort.direction == :asc, do: "hero-chevron-up", else: "hero-chevron-down"}
-        class="h-3 w-3"
-      />
+      <.icon name={@icon} class="h-5 w-5" />
     </button>
     """
   end
+
+  @doc "Formats a timestamp the way all admin tables show it."
+  def format_datetime(nil), do: "—"
+  def format_datetime(datetime), do: Calendar.strftime(datetime, "%b %d, %Y, %H:%M UTC")
 end

@@ -1,97 +1,115 @@
 defmodule MySuperAppWeb.AuthUsersPage do
-  @moduledoc false
-  use MySuperAppWeb, :surface_live_view
+  @moduledoc "Public, read-only list of users with search, sorting and paging."
+  use MySuperAppWeb, :live_view
 
   alias MySuperApp.Accounts
-  alias Moon.Design.{Table, Pagination, Search, Dropdown, Chip}
-  alias Moon.Design.Table.Column
-  alias Moon.Icons.{ControlsChevronRightSmall, ControlsChevronLeftSmall}
+  alias MySuperAppWeb.PageHelper
 
-  prop(selected, :list, default: nil)
-  data(user, :any, default: %{id: "", login: "", email: ""})
-  data(users, :any, default: [])
+  @sortable [:login, :updated_at]
 
   def mount(_params, session, socket) do
-    user = MySuperApp.Accounts.get_user_by_session_token(session["user_token"])
-    
-    {:ok, assign(socket,
-        current_user: user,
-        users: Accounts.get_users(),
-        selected: nil,
-        current_page: 1,
-        page_size: 5,
-        sort: [updated_at: "DEFAULT"],
-        filter: ""
-      )
-    }
+    {:ok,
+     socket
+     |> assign(
+       page_title: "Users",
+       current_user: Accounts.get_user_by_session_token(session["user_token"]),
+       all_users: Accounts.get_users(),
+       filter: "",
+       sort: %{column: nil, direction: :asc},
+       current_page: 1,
+       page_size: 5
+     )
+     |> refresh_rows()}
   end
 
-  def handle_event("on_change_page_size", %{"value" => page_size}, socket) do
-    Dropdown.close("page-size-dropdown")
-
-    current_page_size = socket.assigns.page_size
-
-    updated_socket =
-      case page_size |> String.to_integer() do
-        ^current_page_size ->
-          socket
-        10 ->
-          assign(socket,
-            page_size: page_size |> String.to_integer(),
-            current_page: ceil(socket.assigns.current_page / 2)
-          )
-        5 ->
-          assign(socket, page_size: page_size |> String.to_integer())
-      end
-
-    {:noreply, updated_socket}
+  def handle_event("change_filter", %{"filter" => filter}, socket) do
+    {:noreply, socket |> assign(filter: filter, current_page: 1) |> refresh_rows()}
   end
 
-  def handle_event("change_filter", %{"value" => filter}, socket) do
-    {:noreply,
-     assign(socket,
-       filter: filter,
-       users:
-         Enum.filter(Accounts.get_users(), fn b -> String.starts_with?(String.downcase(b.login), [String.downcase(filter)]) end),
-       current_page: 1
-     )}
-  end
+  def handle_event("sort", %{"value" => column}, socket) do
+    case Enum.find(@sortable, &(Atom.to_string(&1) == column)) do
+      nil ->
+        {:noreply, socket}
 
-  def handle_event("set_current_page", %{"value" => page}, socket) do
-    {:noreply, assign(socket, current_page: String.to_integer(page))}
-  end
-
-  def handle_event(
-        "on_sorting_click",
-        %{"sort-dir" => sort_dir, "sort-key" => sort_key},
-        socket
-      ) do
-    {:noreply,
-     assign(socket,
-       users: users_sorted_by(Accounts.get_users(), String.to_atom(sort_key), sort_dir),
-       sort: ["#{sort_key}": sort_dir]
-     )}
-  end
-
-  def users_sorted_by(users, col, dir) do
-    case dir do
-      "DEFAULT" ->
-        Accounts.get_users()
-
-      "ASC" ->
-        users
-        |> Enum.sort_by(&[&1[col]], :asc)
-
-      "DESC" ->
-        users
-        |> Enum.sort_by(&[&1[col]], :desc)
-
-      _ -> users
+      column ->
+        {:noreply,
+         socket
+         |> assign(sort: PageHelper.toggle_sort(socket.assigns.sort, column))
+         |> refresh_rows()}
     end
   end
 
-  defp users_page(assigns) do
-    assigns.users
-    |> Enum.slice((assigns.current_page * assigns.page_size - assigns.page_size)..(assigns.current_page * assigns.page_size - 1))
+  def handle_event("change_page_size", %{"value" => value}, socket) do
+    case PageHelper.parse_positive(value) do
+      {:ok, size} ->
+        page = PageHelper.resize_page(socket.assigns.current_page, socket.assigns.page_size, size)
+        {:noreply, assign(socket, page_size: size, current_page: page)}
+
+      :error ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("set_page", %{"value" => value}, socket) do
+    case PageHelper.parse_positive(value) do
+      {:ok, page} ->
+        {:noreply,
+         assign(socket,
+           current_page:
+             PageHelper.clamp_page(page, socket.assigns.users, socket.assigns.page_size)
+         )}
+
+      :error ->
+        {:noreply, socket}
+    end
+  end
+
+  defp refresh_rows(socket) do
+    %{all_users: users, filter: filter, sort: sort} = socket.assigns
+    prefix = String.downcase(filter)
+
+    users
+    |> Enum.filter(&String.starts_with?(String.downcase(&1.login), prefix))
+    |> PageHelper.sort_rows(sort)
+    |> then(&assign(socket, users: &1))
+  end
+
+  def render(assigns) do
+    ~H"""
+    <.page_title title="Users" />
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <form phx-change="change_filter" phx-submit="change_filter" class="w-full max-w-xs">
+        <label for="user-filter" class="sr-only">Search by login</label>
+        <input
+          id="user-filter"
+          type="search"
+          name="filter"
+          value={@filter}
+          placeholder="Search by login"
+          phx-debounce="200"
+          class="w-full rounded-lg border-zinc-300 text-sm"
+        />
+      </form>
+      <.page_size_select page_size={@page_size} on_change="change_page_size" />
+    </div>
+    <.data_table
+      id="users"
+      rows={PageHelper.paginate(@users, @current_page, @page_size)}
+      sort={@sort}
+      on_sort="sort"
+      row_id={&"user-#{&1.id}"}
+    >
+      <:col :let={user} label="Login" sort_by={:login}><%= user.login %></:col>
+      <:col :let={user} label="Email"><%= user.email %></:col>
+      <:col :let={user} label="Updated at" sort_by={:updated_at}>
+        <%= format_datetime(user.updated_at) %>
+      </:col>
+    </.data_table>
+    <.pagination
+      current_page={@current_page}
+      total_pages={PageHelper.total_pages(@users, @page_size)}
+      on_change="set_page"
+    />
+    """
   end
 end
