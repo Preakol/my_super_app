@@ -24,7 +24,12 @@ defmodule MySuperApp.Blog do
     |> Repo.all()
   end
 
-  def list_posts_by_filters(%{search: search, author: author, tags: tags, sorting: sorting_params}) do
+  def list_posts_by_filters(%{
+        search: search,
+        author: author,
+        tags: tags,
+        sorting: sorting_params
+      }) do
     from(p in Post,
       where: ilike(p.title, ^"#{search}%"),
       preload: [:tags, :user, :picture]
@@ -46,6 +51,7 @@ defmodule MySuperApp.Blog do
 
   def get_posts_by_date(date, sorting \\ []) do
     {_, date, _} = DateTime.from_iso8601(date)
+
     from(p in Post,
       where: p.inserted_at == ^date,
       preload: [:tags, :user]
@@ -57,6 +63,7 @@ defmodule MySuperApp.Blog do
   def get_posts_by_period(start_date, end_date, sorting \\ []) do
     {_, start_date, _} = DateTime.from_iso8601(start_date)
     {_, end_date, _} = DateTime.from_iso8601(end_date)
+
     from(p in Post,
       where: p.inserted_at >= ^start_date and p.inserted_at <= ^end_date,
       preload: [:tags, :user]
@@ -116,6 +123,7 @@ defmodule MySuperApp.Blog do
     %Post{}
     |> Post.changeset(attrs)
     |> Repo.insert()
+    |> preload_post_assocs()
     |> AdminPubSub.broadcast()
   end
 
@@ -135,8 +143,14 @@ defmodule MySuperApp.Blog do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
+    |> preload_post_assocs()
     |> AdminPubSub.broadcast()
   end
+
+  # `tags` is only put on the changeset when the params contain it, so a post
+  # created without tags would come back with the association not loaded.
+  defp preload_post_assocs({:ok, %Post{} = post}), do: {:ok, Repo.preload(post, [:tags, :user])}
+  defp preload_post_assocs({:error, _changeset} = error), do: error
 
   def update_published_at(%Post{} = post, attrs) do
     post
@@ -178,13 +192,17 @@ defmodule MySuperApp.Blog do
 
   def tags_with_posts do
     from(t in Tag,
-      where: fragment("""
-        EXISTS (
-          SELECT 1
-          FROM posts_tags
-          WHERE posts_tags.tag_id = ?
-        )
-      """, t.id),
+      where:
+        fragment(
+          """
+            EXISTS (
+              SELECT 1
+              FROM posts_tags
+              WHERE posts_tags.tag_id = ?
+            )
+          """,
+          t.id
+        ),
       order_by: [{:asc, t.title}],
       select: t.title
     )
@@ -193,15 +211,19 @@ defmodule MySuperApp.Blog do
 
   def tags_with_pictures do
     from(t in Tag,
-      where: fragment("""
-        EXISTS (
-          SELECT 1
-          FROM posts_tags
-          JOIN posts ON posts.id = posts_tags.post_id
-          JOIN pictures ON pictures.post_id = posts.id
-          WHERE posts_tags.tag_id = ?
-        )
-      """, t.id),
+      where:
+        fragment(
+          """
+            EXISTS (
+              SELECT 1
+              FROM posts_tags
+              JOIN posts ON posts.id = posts_tags.post_id
+              JOIN pictures ON pictures.post_id = posts.id
+              WHERE posts_tags.tag_id = ?
+            )
+          """,
+          t.id
+        ),
       order_by: [{:asc, t.title}],
       select: t.title
     )
@@ -332,7 +354,7 @@ defmodule MySuperApp.Blog do
 
   def get_pictures_by_period(start_date, end_date, sorting \\ [{:desc, "Upload At"}]) do
     with {_, start_date, _} <- DateTime.from_iso8601(start_date),
-          {_, end_date, _} <- DateTime.from_iso8601(end_date) do
+         {_, end_date, _} <- DateTime.from_iso8601(end_date) do
       from(p in Picture,
         where: p.upload_at >= ^start_date and p.upload_at <= ^end_date
       )
@@ -341,7 +363,7 @@ defmodule MySuperApp.Blog do
     else
       {:error, reason} ->
         {:error, reason}
-      end
+    end
   end
 
   def get_pictures_by_author_name(name) do
@@ -362,7 +384,12 @@ defmodule MySuperApp.Blog do
     |> Repo.all()
   end
 
-  def list_pictures_by_filters(%{search: search, tags: tags, extension: extension, sorting: sorting_params}) do
+  def list_pictures_by_filters(%{
+        search: search,
+        tags: tags,
+        extension: extension,
+        sorting: sorting_params
+      }) do
     from(picture in Picture,
       left_join: post in assoc(picture, :post),
       left_join: user in assoc(post, :user),
@@ -379,7 +406,7 @@ defmodule MySuperApp.Blog do
     Picture
     |> select([p], p.file_name)
     |> Repo.all()
-    |> Enum.map(&(Path.extname(&1)))
+    |> Enum.map(&Path.extname(&1))
     |> Enum.uniq()
     |> Enum.map(fn "." <> ext = dot_ext -> %{key: ext, value: dot_ext} end)
   end
@@ -500,7 +527,8 @@ defmodule MySuperApp.Blog do
 
   defp add_sorting(query, [{direction, parameter}]) do
     from(p in query,
-    order_by: ^[{direction, String.downcase(parameter) |> String.replace(" ", "_") |> String.to_atom()}]
+      order_by:
+        ^[{direction, String.downcase(parameter) |> String.replace(" ", "_") |> String.to_atom()}]
     )
   end
 
@@ -510,15 +538,16 @@ defmodule MySuperApp.Blog do
         from(picture in query,
           where: picture.post_id == ^number
         )
+
       _ ->
         from(picture in query,
           left_join: post in assoc(picture, :post),
           left_join: user in assoc(post, :user),
           where:
             ilike(picture.file_name, ^"#{search}%") or
-            ilike(post.title, ^"#{search}%") or
-            ilike(user.login, ^"#{search}%") or
-            (ilike(user.email, ^"#{search}%") and ^String.contains?(search, "@"))
+              ilike(post.title, ^"#{search}%") or
+              ilike(user.login, ^"#{search}%") or
+              (ilike(user.email, ^"#{search}%") and ^String.contains?(search, "@"))
         )
     end
   end
@@ -527,17 +556,23 @@ defmodule MySuperApp.Blog do
 
   defp add_pictures_tags_filter(query, tags) do
     from(picture in query,
-      where: fragment("""
-        EXISTS (
-          SELECT 1
-          FROM posts p
-          JOIN posts_tags pt ON pt.post_id = p.id
-          JOIN tags t ON t.id = pt.tag_id
-          WHERE p.id = ? AND t.title = ANY (?)
-          GROUP BY p.id
-          HAVING COUNT(t.id) = ?
+      where:
+        fragment(
+          """
+            EXISTS (
+              SELECT 1
+              FROM posts p
+              JOIN posts_tags pt ON pt.post_id = p.id
+              JOIN tags t ON t.id = pt.tag_id
+              WHERE p.id = ? AND t.title = ANY (?)
+              GROUP BY p.id
+              HAVING COUNT(t.id) = ?
+            )
+          """,
+          picture.post_id,
+          ^tags,
+          ^length(tags)
         )
-      """, picture.post_id, ^tags, ^length(tags))
     )
   end
 end

@@ -24,9 +24,9 @@ defmodule MySuperAppWeb.PostControllerTest do
   end
 
   describe "create" do
-
     test "creates a post", %{conn: conn} do
       post = post_fixture()
+
       post_params = %{
         "title" => "Test Title",
         "body" => "Test Body",
@@ -35,6 +35,28 @@ defmodule MySuperAppWeb.PostControllerTest do
 
       conn = post(conn, ~p"/api/posts", post: post_params)
       assert %{"id" => _} = json_response(conn, 201)["data"]
+    end
+
+    test "creates a post without tags and renders an empty tag list", %{conn: conn} do
+      post = post_fixture()
+      post_params = %{"title" => "No tags", "body" => "Body", "user_id" => post.user_id}
+
+      conn = post(conn, ~p"/api/posts", post: post_params)
+      assert %{"title" => "No tags", "tags" => []} = json_response(conn, 201)["data"]
+    end
+
+    test "creates a post with tags and renders them", %{conn: conn} do
+      post = post_fixture()
+
+      post_params = %{
+        "title" => "Tagged",
+        "body" => "Body",
+        "user_id" => post.user_id,
+        "tags" => [%{"title" => "elixir"}]
+      }
+
+      conn = post(conn, ~p"/api/posts", post: post_params)
+      assert %{"tags" => [%{"title" => "ELIXIR"}]} = json_response(conn, 201)["data"]
     end
 
     test "returns 404 when user is not found", %{conn: conn} do
