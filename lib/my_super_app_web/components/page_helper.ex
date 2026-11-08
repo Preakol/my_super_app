@@ -46,6 +46,30 @@ defmodule MySuperAppWeb.PageHelper do
     end
   end
 
+  @doc """
+  Turns two `<input type="date">` values into an ordered `{start, end}` pair of
+  ISO-8601 strings, or `:none` while the range is incomplete or invalid.
+  """
+  @spec date_range(String.t() | nil, String.t() | nil) :: {String.t(), String.t()} | :none
+  def date_range(start_date, end_date) do
+    with {:ok, from} <- parse_date(start_date),
+         {:ok, to} <- parse_date(end_date) do
+      [first, last] = Enum.sort([from, to], Date)
+      {Date.to_iso8601(first), Date.to_iso8601(last)}
+    else
+      :error -> :none
+    end
+  end
+
+  defp parse_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> {:ok, date}
+      {:error, _reason} -> :error
+    end
+  end
+
+  defp parse_date(_value), do: :error
+
   defp sorter(direction, rows, column) do
     case Enum.find_value(rows, &Map.get(&1, column)) do
       %module{} when module in [DateTime, NaiveDateTime, Date] -> {direction, module}

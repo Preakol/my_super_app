@@ -64,6 +64,13 @@ defmodule MySuperAppWeb.PageHelperTest do
     assert PageHelper.sort_rows(rows, %{column: nil, direction: :asc}) == rows
   end
 
+  test "date_range/2 orders complete ranges and ignores incomplete ones" do
+    assert PageHelper.date_range("2024-03-10", "2024-03-01") == {"2024-03-01", "2024-03-10"}
+    assert PageHelper.date_range("2024-03-01", "") == :none
+    assert PageHelper.date_range(nil, "2024-03-01") == :none
+    assert PageHelper.date_range("2024-13-01", "2024-03-01") == :none
+  end
+
   test "parse_positive/1 rejects junk" do
     assert PageHelper.parse_positive("10") == {:ok, 10}
     assert PageHelper.parse_positive("0") == :error
