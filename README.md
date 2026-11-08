@@ -135,7 +135,16 @@ CI (`.github/workflows/ci.yml`) runs all of the above, plus
 ## Deployment (Fly.io)
 
 The `Dockerfile` builds a release. Migrations run as the Fly
-`release_command`.
+`release_command`. Fly-specific settings in `rel/env.sh.eex` (IPv6,
+clustering) apply only when `FLY_APP_NAME` is set, so the same image also
+runs locally. To build it, migrate a local database and check a few pages
+(CI runs the same script):
+
+```sh
+docker build -t my-super-app:local .
+DATABASE_URL=ecto://postgres:postgres@localhost/my_super_app_smoke \
+  .github/scripts/docker_smoke_test.sh my-super-app:local
+```
 
 ```sh
 fly apps create my-super-app-demo        # or change `app` in fly.toml

@@ -56,3 +56,30 @@ jobs:
       - run: mix compile --warnings-as-errors
       - run: mix credo
       - run: mix test
+
+  docker:
+    name: Release image smoke test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: my_super_app_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t my-super-app:ci .
+      - run: .github/scripts/docker_smoke_test.sh my-super-app:ci
+        env:
+          DATABASE_URL: ecto://postgres:postgres@localhost/my_super_app_smoke
