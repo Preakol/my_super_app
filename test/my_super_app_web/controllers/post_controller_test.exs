@@ -72,6 +72,17 @@ defmodule MySuperAppWeb.PostControllerTest do
                |> json_response(400)
     end
 
+    test "rejects invalid dates with 400", %{conn: conn} do
+      for query <- [
+            [date: "yesterday"],
+            [start_date: "2024-01-01T00:00:00Z", end_date: "2024-13-40"],
+            [start_date: "nope", end_date: "2024-01-01T00:00:00Z", order_by: "Title", dir: "asc"]
+          ] do
+        assert %{"error" => "Invalid date" <> _} =
+                 conn |> get(~p"/api/posts", query) |> json_response(400)
+      end
+    end
+
     test "lists posts by date", %{conn: conn} do
       post = post_fixture()
 

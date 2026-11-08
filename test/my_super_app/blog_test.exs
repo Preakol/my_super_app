@@ -8,6 +8,12 @@ defmodule MySuperApp.BlogTest do
 
     import MySuperApp.BlogFixtures
 
+    test "date queries return {:error, :invalid_date} for malformed input" do
+      assert Blog.get_posts_by_date("not a date") == {:error, :invalid_date}
+      assert Blog.get_posts_by_date(nil) == {:error, :invalid_date}
+      assert Blog.get_posts_by_period("2024-01-01T00:00:00Z", "x") == {:error, :invalid_date}
+    end
+
     test "update_post/2 with valid data updates the post" do
       post = post_fixture()
 

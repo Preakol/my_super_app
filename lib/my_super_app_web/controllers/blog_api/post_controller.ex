@@ -9,9 +9,14 @@ defmodule MySuperAppWeb.PostController do
   action_fallback MySuperAppWeb.FallbackController
 
   def index(conn, params) do
-    case SortParams.parse(params, Blog.post_sort_options(), []) do
-      {:ok, sorting} ->
-        render(conn, :index, posts: fetch_posts(params, sorting))
+    with {:ok, sorting} <- SortParams.parse(params, Blog.post_sort_options(), []),
+         posts when is_list(posts) <- fetch_posts(params, sorting) do
+      render(conn, :index, posts: posts)
+    else
+      {:error, :invalid_date} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid date, expected ISO 8601 such as 2024-05-01T12:00:00Z"})
 
       {:error, message} ->
         conn

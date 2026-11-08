@@ -61,28 +61,39 @@ defmodule MySuperApp.Blog do
     |> Repo.all()
   end
 
+  @doc "Posts created at exactly `date` (ISO 8601), or `{:error, :invalid_date}`."
   def get_posts_by_date(date, sorting \\ []) do
-    {_, date, _} = DateTime.from_iso8601(date)
-
-    from(p in Post,
-      where: p.inserted_at == ^date,
-      preload: [:tags, :user]
-    )
-    |> add_sorting(sorting)
-    |> Repo.all()
+    with {:ok, date} <- parse_datetime(date) do
+      from(p in Post,
+        where: p.inserted_at == ^date,
+        preload: [:tags, :user]
+      )
+      |> add_sorting(sorting)
+      |> Repo.all()
+    end
   end
 
+  @doc "Posts created between two ISO 8601 datetimes, or `{:error, :invalid_date}`."
   def get_posts_by_period(start_date, end_date, sorting \\ []) do
-    {_, start_date, _} = DateTime.from_iso8601(start_date)
-    {_, end_date, _} = DateTime.from_iso8601(end_date)
-
-    from(p in Post,
-      where: p.inserted_at >= ^start_date and p.inserted_at <= ^end_date,
-      preload: [:tags, :user]
-    )
-    |> add_sorting(sorting)
-    |> Repo.all()
+    with {:ok, start_date} <- parse_datetime(start_date),
+         {:ok, end_date} <- parse_datetime(end_date) do
+      from(p in Post,
+        where: p.inserted_at >= ^start_date and p.inserted_at <= ^end_date,
+        preload: [:tags, :user]
+      )
+      |> add_sorting(sorting)
+      |> Repo.all()
+    end
   end
+
+  defp parse_datetime(value) when is_binary(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, datetime, _offset} -> {:ok, datetime}
+      {:error, _reason} -> {:error, :invalid_date}
+    end
+  end
+
+  defp parse_datetime(_value), do: {:error, :invalid_date}
 
   def get_post_titles_by_user(user) do
     from(p in Post,
