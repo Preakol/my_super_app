@@ -1,0 +1,87 @@
+<h1 class="text-moon-32 font-medium transition-colors">Account settings</h1>
+<div class="flex flex-col gap-3 m-5">
+    <div>
+        <h2 class="text-moon-24 pb-3 font-medium transition-colors">Change Avatar</h2>
+        <Form for={@avatar_form} submit="save_avatar" change="validate_avatar" class="flex flex-col gap-3">
+            {#if Enum.at(@uploads.avatar.entries, 0)}
+                <.live_img_preview entry={@uploads.avatar.entries |> Enum.at(0)} width="75" />
+            {#else}
+                <Moon.Icon name="generic_user" class="text-moon-72" :if={!@current_user.avatar_image} />
+                <img id="phx-preview-1" width="75" src={@current_user.avatar_image} :if={@current_user.avatar_image} >
+            {/if}
+            {#for entry <- @uploads.avatar.entries}
+                <Progress value={entry.progress} progress_color="bg-roshi" :if={entry.preflighted?} />
+                <Button type="submit"
+                    disabled={entry.preflighted?}
+                    right_icon="other-moon"
+                    left_icon="other-moon"
+                    variant="outline"
+                    class="bg-gohan text-zeno w-full flex justify-between"
+                >
+                    Upload Photo
+                </Button>
+            {/for}
+            <Field field={:avatar}>
+                <div class="relative">
+                    <.live_file_input upload={@uploads.avatar} class="opacity-0 absolute top-0 right-0 h-full w-full z-30 cursor-pointer" />
+                    <Button
+                        right_icon="files-save"
+                        left_icon="files-save"
+                        class="bg-bulma text-goku w-full flex justify-between"
+                    >
+                        Choose file...
+                    </Button>
+                </div>
+            </Field>
+        </Form>
+    </div>
+    <div>
+        <h2 class="text-moon-24 pb-3 font-medium transition-colors">Change Login</h2>
+        <Form
+            for={@login_form}
+            submit="update_login"
+            change="validate_login"
+            class="flex flex-col gap-3"
+            autocomplete="off"
+        >
+            <Field field={:login} label="Login">
+                <Input placeholder="New Login" />
+            </Field>
+            <Field id="login_current_password" field={:current_password} label="Password">
+                <Input value={@login_form_current_password} type="password" placeholder="Password" />
+            </Field>
+            <Button type="submit"
+                right_icon="other-moon"
+                left_icon="other-moon"
+                class="bg-bulma text-goku w-full flex justify-between"
+            >
+                Change Login
+            </Button>
+        </Form>
+    </div>
+
+    <div>
+        <h2 class="text-moon-24 pb-3 font-medium transition-colors">Change Email</h2>
+        <Form
+            for={@email_form}
+            submit="update_email"
+            change="validate_email"
+            class="flex flex-col gap-3"
+            autocomplete="off"
+        >
+            <Field field={:email} label="Email">
+                <Input placeholder="New Email" value={nil} />
+            </Field>
+            <Field id="email_current_password" field={:current_password} label="Password">
+                <Input value={@email_form_current_password} type="password" placeholder="Password" />
+            </Field>
+            <Button type="submit"
+                right_icon="other-moon"
+                left_icon="other-moon"
+                class="bg-bulma text-goku w-full flex justify-between"
+            >
+                Change Email
+            </Button>
+        </Form>
+    </div>
+</div>

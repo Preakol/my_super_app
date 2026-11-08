@@ -1,0 +1,23 @@
+/* Import scoped CSS rules for components */
+@import "./_components.css";
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* This file is for your main application CSS */
+
+/*
+  this is a default theme - used on surface.moon.io
+  feel free to copy and modify it
+*/
+@import '../../deps/moon/priv/static/themes/moon.css';
+
+/*
+  Not really required. Only few classes for components
+  are from there. All tailwind imports are already there,
+  so you can remove them from your own app.css
+  also can import _components.css instead
+  @import '../../deps/moon/assets/css/_components.css';
+*/
+@import '../../deps/moon/assets/css/app.css';

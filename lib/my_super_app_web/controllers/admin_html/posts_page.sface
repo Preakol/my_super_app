@@ -1,0 +1,214 @@
+<div class="flex flex-row border-b-[0.063rem] border-beerus pt-5 pb-5 relative gap-3">
+    <h1 class="text-moon-32 font-medium transition-colors">Posts</h1>
+</div>
+<div class="flex flex-row border-b-[0.063rem] border-beerus pt-5 pb-5 relative gap-3">
+  <Button on_click="modal_open_create"
+    class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+  >
+    Add New Post
+  </Button>
+  <Input on_keyup="change_search" placeholder="Search by post title" value={@filters.search} class="max-w-sm focus:shadow-input-cell-focus" />
+</div>
+<div class="flex flex-row border-b-[0.063rem] border-beerus pt-5 pb-5 relative gap-3">
+  <div class="flex">
+    <Dropdown id="sorting_dropdown" on_change="change_sort_param">
+      <Dropdown.Options titles={@sorting_options} class="p-0 z-10" />
+      <Dropdown.Trigger>
+        <Chip class="border border-bulma rounded-none sm:rounded-l-xl w-48 whitespace-nowrap text-pretty hover:text-goku hover:bg-bulma">
+          {@filters.sorting |> Enum.at(0) |> elem(1)}
+        </Chip>
+      </Dropdown.Trigger>
+      <Dropdown.Backdrop />
+    </Dropdown>
+    <Chip on_click="change_sort_dir" class="border border-bulma rounded-none sm:rounded-r-xl hover:text-goku hover:bg-bulma">
+      <ArrowsUp class={"text-moon-24 transition-transform transition-200", "rotate-180": @filters.sorting |> Enum.at(0) |> elem(0) == :desc} />
+    </Chip>
+  </div>
+  <Dropdown id="authors_dropdown" on_change="change_author_filter">
+    <Dropdown.Options titles={@authors_to_choose} class="p-0 z-10 h-48" />
+    <Dropdown.Trigger>
+      <Chip class="border border-bulma w-64 whitespace-nowrap text-pretty hover:text-goku hover:bg-bulma"> {@filters.author} </Chip>
+    </Dropdown.Trigger>
+    <Dropdown.Backdrop />
+  </Dropdown>
+  <div class="flex">
+    <Dropdown id="tags_dropdown" on_change="change_tag_filter" is_open={@tag_dropdown_open} on_trigger="on_trigger_tag_filter">
+      <Dropdown.Trigger>
+        <Chip class="border border-bulma rounded-none sm:rounded-l-xl w-52 whitespace-nowrap text-pretty hover:text-goku hover:bg-bulma">
+          Select Tags
+        </Chip>
+      </Dropdown.Trigger>
+      <Dropdown.Options class="p-0 z-10 h-48">
+        <Dropdown.Header class="whitespace-nowrap">
+          Choose tags to filter:
+        </Dropdown.Header>
+        {#for tag <- @tags_to_choose}
+          <Dropdown.CustomOption id={tag} value={tag} class="flex justify-between flex-row-reverse">
+            {tag}
+            <GenericCheckAlternative class="text-roshi text-moon-24" :if={tag in @filters.tags} />
+          </Dropdown.CustomOption>
+        {/for}
+      </Dropdown.Options>
+    </Dropdown>
+    <Chip on_click="clear_tag_filter" class="border border-bulma rounded-none sm:rounded-r-xl hover:text-goku hover:bg-bulma">
+      <MailFilterCrossed class="text-moon-24" />
+    </Chip>
+  </div>
+  <Button on_click="clear_filters"
+    class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+  >
+    Clear Filters
+  </Button>
+</div>
+<div class="grid grid-cols-2 gap-10 pt-8">
+  {#for {posts_column, idx} <- Enum.with_index([@posts |> Enum.take_every(2), @posts |> Enum.drop(1) |> Enum.take_every(2)])}
+    <div class="flex flex-col gap-10">
+      {#for post <- posts_column}
+        <Accordion id={"simple-accordion-#{post.id}-#{idx}"} on_change="on_change_accordion">
+          <Accordion.Item value={"#{post.id}"} is_open={"#{post.id}" in @open_posts}>
+            <Accordion.Header class="bg-jiren flex flex-col items-start gap-3 rounded-b-none" icon_class="hidden">
+              <div class="flex justify-between w-full">
+                <span class="text-moon-24 font-medium transition-colors">
+                  {post.title}
+                </span>
+                <div class="flex flex-col items-end">
+                  <span class="text-trunks text-moon-9-caption transition-colors">
+                    {post.user.login}
+                  </span>
+                  <span class="text-trunks text-moon-9-caption transition-colors">
+                    Last update: {post.updated_at |> Timex.shift(hours: 3) |> Timex.format!("%b %d, %Y, %H:%M:%S", :strftime)}
+                  </span>
+                  <div class="p-1 flex flex-row bg-krillin-60 gap-1 rounded-lg">
+                    <GenericCheckRounded class="text-moon-24 text-roshi fill-roshi/20" :if={post.published_at} />
+                    <GenericClose class="text-moon-24 text-dodoria fill-dodoria/20" :if={!post.published_at} />
+                    <Title title="Tournaments" class="text-moon-32-caption uppercase transition-colors">
+                      Published: {
+                        post.published_at
+                        && Timex.shift(post.published_at, hours: 3) |> Timex.format!("%b %d, %Y, %H:%M:%S", :strftime)
+                        || "Not Published"
+                        }
+                    </Title>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                {#for tag <- post.tags}
+                  <Tag class={"whitespace-nowrap #{tag.color}"}>{tag.title}</Tag>
+                {/for}
+              </div>
+            </Accordion.Header>
+            <Accordion.Content class="text-pretty bg-jiren">
+              <div class="flex flex-row gap-3">
+                <img
+                  id={"post-#{post.id}-picture"}
+                  src={post.picture.path}
+                  class="border-4 border-bulma rounded-moon-i-md"
+                  style="width: 13rem; height: 13rem"
+                  :if={post.picture}
+                >
+                <span class="whitespace-pre-line">{post.body}</span>
+              </div>
+              <div class="flex flex-row gap-2 p-4 justify-end pt-2" :if={post.user.id == @current_user.id || @current_user.permissions == 1}>
+                <MySwitcher checked={post.published_at}
+                  disabled={Timex.diff(Timex.now(), post.updated_at, :minutes) < 5}
+                  on_change="toggle_published"
+                  values={post: post.id, user: post.user_id}
+                />
+                <Button on_click="modal_open_update"
+                  left_icon="files_generic"
+                  value={post.id}
+                  class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+                >
+                  Change
+                </Button>
+                <Button on_click="modal_delete_open"
+                  left_icon="generic_delete"
+                  value={post.id}
+                  class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+                >
+                  Delete
+                </Button>
+              </div>
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      {/for}
+    </div>
+  {/for}
+</div>
+<Modal id="modal" is_open={@modal_open} on_close="do_nothing">
+  <Modal.Backdrop />
+  <Modal.Panel class="w-1/2 max-w-full rounded-moon-s-xs">
+    <div class="border-b-[0.063rem] border-beerus pt-5 pb-4 px-6 relative">
+      <h3 class="text-moon-18 text-bulma font-medium">
+        {@form_action == "create" && "Create New Post" || "Change Post"}
+      </h3>
+      <IconButton
+        icon="controls_close"
+        variant="ghost"
+        on_click="modal_close"
+        class="absolute top-3 right-3 hover:text-goku hover:bg-bulma"
+      />
+    </div>
+    <div class="px-6 py-4">
+      <Form for={@form} change="validate" submit="submit_form" class="flex flex-col gap-3">
+        <Field field={:title}>
+          <Input placeholder="Post Title" />
+        </Field>
+        <Field field={:body}>
+          <TextArea placeholder="Write your content" class="resize-y" />
+        </Field>
+        <div class="flex flex-wrap gap-3">
+          {#for tag <- @form.params["tags"]}
+            <Tag class={"whitespace-nowrap #{tag["color"]} flex flex-row gap-2 justify-between px-0 pl-2"}>
+              <span>{tag["title"]}</span>
+              <IconButton
+                icon="controls_close_small"
+                variant="ghost"
+                value={tag["title"]}
+                class="text-goku hover:text-goku"
+                on_click="remove_tag"
+                size="xs"
+              />
+            </Tag>
+          {/for}
+          <Field field={:tag}>
+            <Tag class="flex flex-row gap-2 justify-between px-0 pl-1">
+              <Input placeholder="Add New Tag" class="h-5 leading-5 rounded-moon-i-xs focus:shadow-input-cell-focus" />
+              <IconButton
+                icon="generic_check_alternative"
+                variant="ghost"
+                value={@new_tag}
+                class="text-goku hover:text-goku"
+                on_click="add_tag"
+                size="xs"
+              />
+            </Tag>
+          </Field>
+        </div>
+        <div class="flex gap-2 p-4 justify-end pt-2">
+          <Button variant="outline"
+            on_click="modal_close"
+            left_icon="controls_close"
+            class="hover:text-goku hover:bg-bulma"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            left_icon={@form_action == "create" && "controls_plus" || "files_generic"}
+            class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+          >
+            {@form_action == "create" && "Create" || "Update"}
+          </Button>
+        </div>
+      </Form>
+    </div>
+  </Modal.Panel>
+</Modal>
+<MyDeleteModal id="modal_delete" 
+  is_open={@modal_delete_open}
+  on_toggle="modal_close"
+  on_delete="delete"
+  header={"Delete Post?"}
+/>

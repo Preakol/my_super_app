@@ -1,0 +1,148 @@
+<h1 class="text-moon-32 font-medium transition-colors">Site Configs</h1>
+<div class="flex flex-row border-b-[0.063rem] border-beerus pt-5 pb-4 relative gap-3">
+  <Button
+    on_click="toggle_create_modal"
+    values={action: "open"}
+    class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+  >Add Site Config</Button>
+  <MyDatepicker id="date-filter"
+    start_date={@filters.start_date}
+    end_date={@filters.end_date}
+    on_change="change_date_filter"
+  />
+  <Input on_keyup="change_search"
+    placeholder="Search by site id, site brand, or operator name"
+    value={@filters.search}
+    class="max-w-md focus:shadow-input-cell-focus"
+  />
+  <Button on_click="clear_filters"
+    class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+  >
+    Clear Filters
+  </Button>
+</div>
+<div class="flex flex-row justify-between border-b-[0.063rem] border-beerus pt-5 pb-4 relative">
+  <Dropdown id="page-size-dropdown">
+    <Dropdown.Options titles={[5, 10]} on_change="on_change_page_size" class="p-0" />
+    <Dropdown.Trigger>
+      <Chip
+        class="border border-bulma w-50 text-bulma bg-goku hover:text-goku hover:bg-bulma"
+      >Page size: {@page_size}</Chip>
+    </Dropdown.Trigger>
+  </Dropdown>
+  <Pagination
+    id="default"
+    total_pages={ceil(length(@site_configs) / @page_size) |> max(1)}
+    value={@current_page}
+    on_change="set_current_page"
+    class="w-50"
+  >
+    <Pagination.PrevButton variant="ghost">
+      <ControlsChevronLeft class="text-moon-24" />
+    </Pagination.PrevButton>
+    <Pagination.Pages class="hidden" />
+    <Pagination.NextButton variant="ghost">
+      <ControlsChevronRight class="text-moon-24" />
+    </Pagination.NextButton>
+  </Pagination>
+</div>
+<Table
+  sort={@filters.sorting}
+  items={site_config <- PageHelper.select_content_for_page(assigns, @site_configs)}
+  sorting_click="handle_sorting_click"
+  row_bg="bg-heles"
+  header_row_class="bg-goku"
+  row_gap="border-spacing-y-0"
+  sorting_icon="arrows_up"
+  class="rounded-0"
+>
+  <Column name="id" label="#" sortable class="first:rounded-0">
+    {site_config.id}
+  </Column>
+  <Column name="brand" label="Brand">
+    {site_config.brand}
+  </Column>
+  <Column name="operator" label="Operator">
+    {site_config.operator_name}
+  </Column>
+  <Column name="inserted_at" label="Created_at" sortable>
+    {site_config.inserted_at |> Timex.shift(hours: 3) |> Timex.format!("%b %d, %Y, %H:%M:%S", :strftime)}
+  </Column>
+  <Column name="status" label="Status">
+    {(site_config.status && "ACTIVE") || "STOPPED"}
+  </Column>
+  <Column class="last:rounded-0 flex flex-row justify-end">
+    <IconButton
+      icon={(site_config.status && "media_pause") || "media_play"}
+      on_click="change_status"
+      values={status: site_config.status, id: site_config.id}
+      variant="ghost"
+    />
+    <IconButton
+      icon="generic_delete"
+      on_click="toggle_del_modal"
+      value={site_config.id}
+      values={action: "open"}
+      variant="ghost"
+    />
+  </Column>
+</Table>
+<Modal id="modal_create" is_open={@create_modal_open} on_close="do_nothing">
+  <Modal.Backdrop />
+  <Modal.Panel class="w-full max-w-lg rounded-moon-s-xs">
+    <div class="border-b-[0.063rem] border-beerus pt-5 pb-4 px-6 relative">
+      <h3 class="text-moon-18 text-bulma font-medium">
+        Create New Site Config
+      </h3>
+      <IconButton
+        icon="controls_close"
+        variant="ghost"
+        values={action: "close"}
+        on_click="toggle_create_modal"
+        class="absolute top-3 right-3"
+      />
+    </div>
+    <div class="px-6 py-4">
+      <Form for={@form} change="validate" submit="create" class="flex flex-col gap-3">
+        <Field field={:operator_id} label="Operator">
+          <MyFormDropdown
+            id="operator-id-create"
+            disabled={@current_user.permissions > 1}
+            options={@operators_to_choose}
+            prompt="Please select Operator"
+          />
+        </Field>
+        <Field field={:brand} label="Brand">
+          <MyFormDropdown
+            id="brand-create"
+            disabled={is_nil(@form.params["operator_id"])}
+            options={@brands_to_choose}
+            prompt="Please select Brand"
+          />
+        </Field>
+        <div class="flex gap-2 p-4 justify-end pt-2">
+          <Button variant="outline"
+            on_click="toggle_create_modal"
+            values={action: "close"}
+            left_icon="controls_close"
+            class="hover:text-goku hover:bg-bulma"
+          >Cancel</Button>
+          <Button
+            disabled={!@form.source.valid?}
+            type="submit"
+            left_icon="controls_plus"
+            class={"border border-bulma bg-bulma text-goku",
+                    "hover:text-bulma hover:bg-goku": @form.source.valid?
+                  }
+          >Create</Button>
+        </div>
+      </Form>
+    </div>
+  </Modal.Panel>
+</Modal>
+<MyDeleteModal id="modal_delete" 
+  is_open={@del_modal_open}
+  on_toggle="toggle_del_modal"
+  on_delete="delete"
+  header={"Delete Site config for #{@config_to_delete.brand}?"}
+/>

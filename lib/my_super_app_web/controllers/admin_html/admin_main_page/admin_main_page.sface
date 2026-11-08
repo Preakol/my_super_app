@@ -1,0 +1,145 @@
+<h1 class="text-moon-32 font-medium transition-colors">Users</h1>
+<div class="flex flex-row border-b-[0.063rem] border-beerus pt-5 pb-5 relative gap-3">
+  <Input on_keyup="change_search"
+    placeholder="Search by login or id"
+    value={@filters.search}
+    class="max-w-md focus:shadow-input-cell-focus"
+  />
+  <Button on_click="clear_filters"
+    class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+  >
+    Clear Filters
+  </Button>
+</div>
+<div class="flex flex-row justify-between border-b-[0.063rem] border-beerus pt-5 pb-5 relative">
+  <Dropdown id="page-size-dropdown">
+    <Dropdown.Options titles={[5, 10]} on_change="on_change_page_size" class="p-0" />
+    <Dropdown.Trigger>
+      <Chip class="border border-bulma w-50 hover:text-goku hover:bg-bulma">Page size: {@page_size}</Chip>
+    </Dropdown.Trigger>
+  </Dropdown>
+  <Dropdown id="operators_filter" on_change="change_operator_filter">
+    <Dropdown.Options titles={@operators_for_filter} class="p-0 z-10" />
+    <Dropdown.Trigger>
+      <Chip class="border border-bulma w-64 whitespace-nowrap text-pretty hover:text-goku hover:bg-bulma">
+        {@filters.operator}
+      </Chip>
+    </Dropdown.Trigger>
+    <Dropdown.Backdrop />
+  </Dropdown>
+  <Dropdown id="roles_filter" on_change="change_role_filter">
+    <Dropdown.Options titles={@roles_for_filter} class="p-0 z-10" />
+    <Dropdown.Trigger>
+      <Chip
+        class={
+          "border border-bulma w-64 whitespace-nowrap text-pretty",
+          "hover:text-goku hover:bg-bulma": @filters.operator != "Select Operator"
+          }
+        disabled={@filters.operator == "Select Operator"}
+      >
+        {@filters.role}
+      </Chip>
+    </Dropdown.Trigger>
+    <Dropdown.Backdrop />
+  </Dropdown>
+  <Pagination
+    id="default"
+    total_pages={ceil(length(@users) / @page_size) |> max(1)}
+    value={@current_page}
+    on_change="set_current_page"
+    class="w-50"
+  >
+    <Pagination.PrevButton variant="ghost">
+      <ControlsChevronLeft class="text-moon-24" />
+    </Pagination.PrevButton>
+    <Pagination.Pages class="hidden" />
+    <Pagination.NextButton variant="ghost">
+      <ControlsChevronRight class="text-moon-24" />
+    </Pagination.NextButton>
+  </Pagination>
+</div>
+<Table {=@current_user}
+  users={PageHelper.select_content_for_page(assigns, @users)}
+  sort={@filters.sorting}
+  sorting_click="handle_sorting_click"
+  on_manage_click="modal_manage_open"
+  on_delete_click="toggle_del_modal"
+/>
+<Modal id="modal_manage" is_open={@manage_modal_open} on_close="do_nothing">
+  <Modal.Backdrop />
+  <Modal.Panel class="w-full max-w-lg rounded-moon-s-xs">
+    <div class="border-b-[0.063rem] border-beerus pt-5 pb-4 px-6 relative">
+      <h3 class="text-moon-18 text-bulma font-medium">
+        Manage User operator and role
+      </h3>
+      <IconButton
+        icon="controls_close"
+        variant="ghost"
+        on_click="modal_manage_close"
+        class="absolute top-3 right-3"
+      />
+    </div>
+    <div class="px-6 py-4">
+      <Dropdown
+        id="op_dropdown"
+        as_dropdown_on="md"
+        on_change="change_operator_form"
+        disabled={@current_user.permissions > 1}
+      >
+        <Dropdown.Options titles={@operators_for_form} />
+        <Dropdown.Trigger :let={is_open: is_open}>
+          <Chip
+            class="border border-bulma w-50 hover:text-bulma mb-3"
+            disabled={@current_user.permissions > 1}
+          >
+            {@operator_in_form || "Select Operator"}
+            <ControlsChevronDown class={"text-trunks text-moon-16 transition-transform transition-200", "rotate-180": is_open} />
+          </Chip>
+        </Dropdown.Trigger>
+        <Dropdown.Backdrop />
+      </Dropdown>
+      <Form for={@form_manage} change="validate" class="flex flex-col gap-3" submit="manage">
+        <Field field={:role_id} label="Role">
+          <Form.Dropdown
+            id="role_manage"
+            disabled={is_nil(@operator_in_form)}
+            options={@roles_for_form}
+            prompt="Please select role"
+          />
+        </Field>
+        <div class="flex gap-2 p-4 justify-end pt-2">
+          <Button variant="outline" on_click="modal_manage_close" left_icon="controls_close" class="hover:text-goku hover:bg-bulma">Cancel</Button>
+          {#if is_nil(@form_manage.data.role)}
+            <Button
+              disabled={!@form_manage.source.valid?}
+              type="submit"
+              left_icon="controls_plus"
+              class={"border border-bulma bg-bulma text-goku",
+                      "hover:text-bulma hover:bg-goku": @form_manage.source.valid?
+                    }
+            >Give Role</Button>
+          {#else}
+            <Button
+              disabled={!@form_manage.source.valid? || @form_manage.source.changes == %{}}
+              type="submit"
+              left_icon="generic_edit"
+              class={"border border-bulma bg-bulma text-goku",
+                      "hover:text-bulma hover:bg-goku": @form_manage.source.valid? && @form_manage.source.changes != %{}
+                    }
+            >Change Role</Button>
+            <Button on_click="on_remove_role"
+              left_icon="arrows_down"
+              class="border border-bulma bg-bulma text-goku hover:text-bulma hover:bg-goku"
+            >Ungive Role</Button>
+          {/if}
+        </div>
+      </Form>
+    </div>
+  </Modal.Panel>
+</Modal>
+<MyDeleteModal id="modal_delete" 
+  is_open={@del_modal_open}
+  on_toggle="toggle_del_modal"
+  on_delete="delete"
+  header={"Delete User #{@user_to_delete.login}?"}
+/>

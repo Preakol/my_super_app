@@ -1,0 +1,55 @@
+defmodule MySuperApp.Blog.Post do
+  @moduledoc false
+
+  use Ecto.Schema
+  import Ecto.Changeset
+  import MySuperAppWeb.ImageHelpers, only: [delete_picture_from_cloud: 1]
+  alias MySuperApp.{Repo, User, Blog.Tag, Blog.Picture}
+
+  @colors [
+    "bg-piccolo", "bg-hit", "bg-popo", "bg-krillin", "bg-chichi", "bg-roshi", "bg-dodoria", "bg-cell", "bg-whis", "bg-frieza"
+  ]
+
+  schema "posts" do
+    field :title, :string
+    field :body, :string
+    field :published_at, :utc_datetime, default: nil
+    timestamps(type: :utc_datetime)
+    belongs_to :user, User, foreign_key: :user_id, on_replace: :update
+    many_to_many :tags, Tag, join_through: "posts_tags", on_replace: :delete, on_delete: :delete_all
+    has_one :picture, Picture
+  end
+
+  @doc false
+  def changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:title, :body, :published_at])
+    |> put_assoc(:user, Repo.get(User, params["user_id"] || 0))
+    |> maybe_put_tags(params["tags"])
+    |> validate_required([:title, :body])
+  end
+
+  def before_delete(post) do
+    Repo.get_by(Picture, post_id: post.id)
+    |> delete_picture_from_cloud()
+    post
+  end
+
+  defp maybe_put_tags(changeset, tags) when not is_nil(tags) do
+    put_assoc(changeset, :tags, parse_tags(tags))
+  end
+  defp maybe_put_tags(changeset, tags) when is_nil(tags), do: changeset
+
+  defp parse_tags(tags_params) do
+    Enum.map(tags_params, fn %{"title" => title} ->
+      case Repo.get_by(Tag, title: String.upcase(title)) do
+        nil ->
+          %Tag{title: String.upcase(title), color: Enum.random(@colors)}
+          |> Repo.insert!()
+
+        tag ->
+          tag
+      end
+    end)
+  end
+end

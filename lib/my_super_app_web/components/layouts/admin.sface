@@ -1,0 +1,108 @@
+<header class="fixed top-0 pl-4 sm:pl-6 lg:pl-8 mb-4 bg-gohan w-full z-50">
+  <div class="relative p-4 flex flex-row gap-2 items-center justify-between text-bulma">
+    <a href="/admin/" aria-label="admin main page">
+      <svg class="moon-logo" style="height: 2em; width: 2em">
+        <use href="/moon_icons/svgs/logos/logo-moon-design-short.svg#item"></use>
+      </svg>
+    </a>
+    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
+      <li>
+        <Moon.Design.Dropdown
+          id="avatar-dropdown"
+        >
+          <Moon.Design.Dropdown.Trigger>
+            <Moon.Design.Tooltip>
+              <Moon.Design.Tooltip.Trigger>
+                <Moon.Components.Chip>
+                  {#if @current_user.avatar_image}
+                      <Moon.Design.Avatar image_url={@current_user.avatar_image}/>
+                  {#else}
+                      <Moon.Design.Avatar/>
+                  {/if}
+                </Moon.Components.Chip>
+              </Moon.Design.Tooltip.Trigger>
+              <Moon.Design.Tooltip.Content position="left" has_no_shadow>
+                {@current_user.login}<span :if={@current_user.operator_name}>({@current_user.operator_name})</span>
+              </Moon.Design.Tooltip.Content>
+            </Moon.Design.Tooltip>
+          </Moon.Design.Dropdown.Trigger>
+          <Moon.Design.Dropdown.Options position="bottom-end">
+            <Moon.Design.Dropdown.Header class="whitespace-nowrap">
+              {@current_user.login}<span :if={@current_user.operator_name}>({@current_user.operator_name})</span>
+            </Moon.Design.Dropdown.Header>
+            <a href="/users/settings" aria-label="settings page">
+              <Moon.Design.Dropdown.CustomOption>
+                Settings
+              </Moon.Design.Dropdown.CustomOption>
+            </a>
+            <.link href={~p"/users/log_out"} class="p-4 gap-3 rounded-none border-b border-beerus hover:bg-heles" method="delete">
+              Log out
+            </.link>
+          </Moon.Design.Dropdown.Options>
+      </Moon.Design.Dropdown>
+    </li>
+    </ul>
+  </div>
+</header>
+{#if @page_title != "Admin Welcome"}
+  <nav
+    aria-label="Sidebar"
+    class="fixed top-16 h-screen flex flex-col flex-grow gap-6 mt-16 mb-20 px-5 lg:px-8"
+  >
+    <div class="flex flex-col gap-1 pt-3">
+      <a
+        class="flex p-2 bg-transparent cursor-pointer transition items-center justify-start rounded-moon-i-sm gap-2 text-moon-14 w-full focus:outline-none focus:shadow-focus hover:bg-heles"
+        href="/admin/users/"
+      >
+        Users
+      </a>
+      <a
+        class="flex p-2 bg-transparent cursor-pointer transition items-center justify-start rounded-moon-i-sm gap-2 text-moon-14 w-full focus:outline-none focus:shadow-focus hover:bg-heles"
+        href="/admin/posts/"
+      >
+        Posts
+      </a>
+      <a
+        class="flex p-2 bg-transparent cursor-pointer transition items-center justify-start rounded-moon-i-sm gap-2 text-moon-14 w-full focus:outline-none focus:shadow-focus hover:bg-heles"
+        href="/admin/pictures/"
+      >
+        Pictures
+      </a>
+      {#if @current_user.permissions == 1}
+        <a
+          class="flex p-2 bg-transparent cursor-pointer transition items-center justify-start rounded-moon-i-sm gap-2 text-moon-14 w-full focus:outline-none focus:shadow-focus hover:bg-heles"
+          href="/admin/operators/"
+        >
+          Operators
+        </a>
+      {/if}
+      {#if @current_user.permissions < 3}
+        <a
+          class="flex p-2 bg-transparent cursor-pointer transition items-center justify-start rounded-moon-i-sm gap-2 text-moon-14 w-full focus:outline-none focus:shadow-focus hover:bg-heles"
+          href="/admin/roles/"
+        >
+          Roles
+        </a>
+        <a
+          class="flex p-2 bg-transparent cursor-pointer transition items-center justify-start rounded-moon-i-sm gap-2 text-moon-14 w-full focus:outline-none focus:shadow-focus hover:bg-heles"
+          href="/admin/site-configs/"
+        >
+          Site Configs
+        </a>
+      {/if}
+    </div>
+  </nav>
+{/if}
+<main class="px-4 py-20 sm:px-6 lg:px-8 mt-8">
+  {#if @page_title != "Admin Welcome"}
+    <div style="margin-left: 176px">
+      <.flash_group flash={@flash} />
+      {@inner_content}
+    </div>
+  {#else}
+    <div>
+      <.flash_group flash={@flash} />
+      {@inner_content}
+    </div>
+  {/if}
+</main>
