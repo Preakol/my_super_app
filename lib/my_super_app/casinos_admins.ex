@@ -89,10 +89,23 @@ defmodule MySuperApp.CasinosAdmins do
 
   defp parse_id(_id), do: :error
 
+  @doc """
+  Deletes an operator with its roles and site configs. Returns
+  `{:error, :not_found}` when it is already gone, including when another
+  admin deletes it between the lookup and the delete.
+  """
   def delete_operator(id) do
-    Operator
-    |> Repo.get(id)
-    |> Repo.delete()
-    |> AdminPubSub.broadcast(:delete)
+    with {:ok, id} <- parse_id(id),
+         %Operator{} = operator <- Repo.get(Operator, id),
+         {:ok, deleted} <- Repo.delete(operator, stale_error_field: :id) do
+      AdminPubSub.broadcast({:ok, deleted}, :delete)
+    else
+      {:error, %Ecto.Changeset{} = changeset} -> stale_or_error(changeset)
+      _missing -> {:error, :not_found}
+    end
+  end
+
+  defp stale_or_error(%Ecto.Changeset{errors: errors} = changeset) do
+    if Keyword.has_key?(errors, :id), do: {:error, :not_found}, else: {:error, changeset}
   end
 end

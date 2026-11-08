@@ -62,6 +62,19 @@ defmodule MySuperAppWeb.OperatorsPageTest do
     refute has_element?(view, "#delete-operator-modal")
   end
 
+  test "shows a flash when the operator was deleted after the dialog opened", %{conn: conn} do
+    operator = Repo.insert!(%Operator{name: "Gone Casino"})
+    {:ok, view, _html} = live(conn, ~p"/admin/operators")
+
+    view |> element(~s(button[aria-label="Delete Gone Casino"])) |> render_click()
+    Repo.delete!(operator)
+
+    assert view |> element("#delete-operator-modal-confirm") |> render_click() =~
+             "Gone Casino was already deleted"
+
+    refute has_element?(view, "#delete-operator-modal")
+  end
+
   test "deletes an operator after confirmation", %{conn: conn} do
     operator = Repo.insert!(%Operator{name: "Gone Casino"})
     {:ok, view, _html} = live(conn, ~p"/admin/operators")

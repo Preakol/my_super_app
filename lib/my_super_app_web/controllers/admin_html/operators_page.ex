@@ -79,6 +79,7 @@ defmodule MySuperAppWeb.OperatorsPage do
     socket =
       case CasinosAdmins.delete_operator(id) do
         {:ok, _operator} -> put_flash(socket, :info, "#{name} deleted")
+        {:error, :not_found} -> put_flash(socket, :error, "#{name} was already deleted")
         {:error, _changeset} -> put_flash(socket, :error, "#{name} could not be deleted")
       end
 

@@ -127,5 +127,13 @@ defmodule MySuperApp.CasinosAdminsTest do
       assert {:ok, _deleted_operator} = CasinosAdmins.delete_operator(operator1.id)
       assert Repo.get(Operator, operator1.id) == nil
     end
+
+    test "returns :not_found for an operator that is already gone", %{operator2: operator2} do
+      Repo.delete!(operator2)
+
+      assert CasinosAdmins.delete_operator(operator2.id) == {:error, :not_found}
+      assert CasinosAdmins.delete_operator("#{operator2.id}") == {:error, :not_found}
+      assert CasinosAdmins.delete_operator("abc") == {:error, :not_found}
+    end
   end
 end
