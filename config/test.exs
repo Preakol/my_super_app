@@ -5,9 +5,7 @@ config :pbkdf2_elixir, :rounds, 1
 
 config :my_super_app, Oban, testing: :inline
 
-config :sendgrid,
-  api_key: System.get_env("SENDGRID_API_KEY"),
-  sandbox_enable: true
+config :sendgrid, sandbox_enable: true
 
 # Configure your database
 #

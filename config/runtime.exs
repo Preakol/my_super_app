@@ -20,6 +20,31 @@ if System.get_env("PHX_SERVER") do
   config :my_super_app, MySuperAppWeb.Endpoint, server: true
 end
 
+fetch_required_env = fn name ->
+  case System.get_env(name) do
+    value when value in [nil, ""] ->
+      if config_env() == :prod do
+        raise "environment variable #{name} is missing. See .env.example."
+      else
+        # Cloudex refuses to boot with nil settings, so dev/test get an explicit
+        # placeholder; uploads and emails then fail loudly at call time instead.
+        "not-configured"
+      end
+
+    value ->
+      value
+  end
+end
+
+config :sendgrid, api_key: fetch_required_env.("SENDGRID_API_KEY")
+
+config :cloudex,
+  api_key: fetch_required_env.("CLOUDINARY_API_KEY"),
+  secret: fetch_required_env.("CLOUDINARY_SECRET"),
+  cloud_name: fetch_required_env.("CLOUDINARY_CLOUD_NAME")
+
+config :my_super_app, :mail_from, fetch_required_env.("MAIL_FROM")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

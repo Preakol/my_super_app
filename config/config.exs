@@ -12,14 +12,6 @@ config :my_super_app, Oban,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10, email: 5]
 
-config :sendgrid,
-  api_key: System.get_env("SENDGRID_API_KEY")
-
-config :cloudex,
-  api_key: System.get_env("CLOUDINARY_API_KEY"),
-  secret: System.get_env("CLOUDINARY_SECRET"),
-  cloud_name: System.get_env("CLOUDINARY_CLOUD_NAME")
-
 config :my_super_app,
   ecto_repos: [MySuperApp.Repo],
   generators: [timestamp_type: :utc_datetime]
@@ -27,8 +19,8 @@ config :my_super_app,
 moon_config_path = "#{File.cwd!()}/deps/moon/config/surface.exs"
 
 if File.exists?("#{moon_config_path}") do
-    import_config(moon_config_path)
-  end
+  import_config(moon_config_path)
+end
 
 config :surface, :components, [
   {MySuperAppWeb.MyFormDropdown, propagate_context_to_slots: true},
