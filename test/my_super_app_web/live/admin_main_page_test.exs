@@ -157,5 +157,111 @@ defmodule MySuperAppWeb.AdminMainPageTest do
 
       refute AdminMainPage.can_delete?(@operator_admin, @operator_admin)
     end
+
+    test "nobody may manage their own role" do
+      refute AdminMainPage.can_manage?(@super, @super)
+      refute AdminMainPage.can_manage?(@operator_admin, @operator_admin)
+    end
+
+    test "super admins may manage any other user" do
+      assert AdminMainPage.can_manage?(@super, %{
+               id: 5,
+               permissions: 2,
+               operator_id: 99,
+               role_id: 1
+             })
+    end
+
+    test "operator admins may manage lower roles of their operator and users without a role" do
+      assert AdminMainPage.can_manage?(@operator_admin, %{
+               id: 5,
+               permissions: 3,
+               operator_id: 10,
+               role_id: 1
+             })
+
+      assert AdminMainPage.can_manage?(@operator_admin, %{
+               id: 5,
+               permissions: nil,
+               operator_id: nil,
+               role_id: nil
+             })
+
+      refute AdminMainPage.can_manage?(@operator_admin, %{
+               id: 5,
+               permissions: 3,
+               operator_id: 99,
+               role_id: 1
+             })
+
+      refute AdminMainPage.can_manage?(@operator_admin, %{
+               id: 5,
+               permissions: 2,
+               operator_id: 10,
+               role_id: 1
+             })
+    end
   end
+
+  describe "server-side role checks" do
+    setup %{conn: conn} do
+      %{conn: admin_conn, user: admin} = log_in_admin(%{conn: conn}, 2)
+      other_operator = Repo.insert!(%Operator{name: "Other casino"})
+
+      foreign_role =
+        Repo.insert!(%Role{name: "Foreign", permissions: 3, operator_id: other_operator.id})
+
+      %{conn: admin_conn, admin: admin, foreign_role: foreign_role}
+    end
+
+    test "the manage button is not shown for the current user", %{conn: conn, admin: admin} do
+      newbie = user_fixture(%{login: "newbie"})
+      {:ok, view, _html} = live(conn, ~p"/admin/users")
+
+      assert has_element?(view, ~s(button[aria-label="Manage role of #{newbie.login}"]))
+      refute has_element?(view, ~s(button[aria-label="Manage role of #{admin.login}"]))
+    end
+
+    test "opening the dialog for yourself is rejected", %{conn: conn, admin: admin} do
+      {:ok, view, _html} = live(conn, ~p"/admin/users")
+
+      html = render_hook(view, "open_manage", %{"value" => to_string(admin.id)})
+
+      assert html =~ "You are not allowed to manage this user"
+      refute has_element?(view, "#manage-modal")
+    end
+
+    test "saving a role the admin cannot grant is rejected", %{
+      conn: conn,
+      foreign_role: foreign_role
+    } do
+      newbie = user_fixture(%{login: "newbie"})
+      {:ok, view, _html} = live(conn, ~p"/admin/users")
+      render_hook(view, "open_manage", %{"value" => to_string(newbie.id)})
+
+      html =
+        render_hook(view, "save_role", %{"user" => %{"role_id" => to_string(foreign_role.id)}})
+
+      assert html =~ "This role is not available"
+      assert is_nil(Repo.reload!(newbie).role_id)
+    end
+
+    test "saving is rejected when the target became unmanageable", %{conn: conn, admin: admin} do
+      newbie = user_fixture(%{login: "newbie"})
+      {:ok, view, _html} = live(conn, ~p"/admin/users")
+      render_hook(view, "open_manage", %{"value" => to_string(newbie.id)})
+
+      higher_role =
+        Repo.insert!(%Role{name: "Boss", permissions: 2, operator_id: admin_operator_id(admin)})
+
+      newbie |> Ecto.Changeset.change(role_id: higher_role.id) |> Repo.update!()
+
+      html = render_hook(view, "remove_role", %{})
+
+      assert html =~ "You are not allowed to manage this user"
+      assert Repo.reload!(newbie).role_id == higher_role.id
+    end
+  end
+
+  defp admin_operator_id(admin), do: Repo.get!(Role, admin.role_id).operator_id
 end

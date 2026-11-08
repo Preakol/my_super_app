@@ -28,14 +28,16 @@ defmodule MySuperAppWeb.AdminMainPage do
   end
 
   @doc """
-  Whether the manage (role) button is shown for `user`. The trailing
-  `current_user.permissions` clause is kept from the original page: it makes
-  the button visible to every admin, see the README's "Known issues".
+  Whether `current_user` may change the role of `user`: never their own,
+  any user for the super admin, otherwise users without a role or with a
+  lower role of the same operator. A missing role (`nil` permissions) sorts
+  above every integer, so it counts as the lowest level.
   """
   def can_manage?(current_user, user) do
-    ((current_user.operator_id == user.operator_id or is_nil(user.role_id)) and
-       user.permissions > current_user.permissions and user.id != current_user.id) or
-      not is_nil(current_user.permissions)
+    user.id != current_user.id and
+      (current_user.permissions == 1 or
+         ((current_user.operator_id == user.operator_id or is_nil(user.role_id)) and
+            user.permissions > current_user.permissions))
   end
 
   @doc "Whether the delete button is shown for `user`."
@@ -119,27 +121,27 @@ defmodule MySuperAppWeb.AdminMainPage do
   end
 
   def handle_event("open_manage", %{"value" => user_id}, socket) do
-    case Accounts.get_user(user_id) do
-      %User{} = user ->
-        current_user = socket.assigns.current_user
+    with :ok <- authorize_manage(socket.assigns.current_user, user_id),
+         %User{} = user <- Accounts.get_user(user_id) do
+      current_user = socket.assigns.current_user
 
-        operator =
-          if current_user.permissions == 1,
-            do: Accounts.get_user_with_op_and_role(user_id).operator_name,
-            else: current_user.operator_name
+      operator =
+        if current_user.permissions == 1,
+          do: Accounts.get_user_with_op_and_role(user_id).operator_name,
+          else: current_user.operator_name
 
-        {:noreply,
-         assign(socket,
-           manage: %{
-             form: user |> Accounts.change_user_role() |> to_form(),
-             operator: operator,
-             operators: CasinosAdmins.get_operator_names(),
-             roles: roles_for_form(operator, current_user.permissions)
-           }
-         )}
-
-      nil ->
-        {:noreply, put_flash(socket, :error, "User not found")}
+      {:noreply,
+       assign(socket,
+         manage: %{
+           form: user |> Accounts.change_user_role() |> to_form(),
+           operator: operator,
+           operators: CasinosAdmins.get_operator_names(),
+           roles: roles_for_form(operator, current_user.permissions)
+         }
+       )}
+    else
+      {:error, message} -> {:noreply, put_flash(socket, :error, message)}
+      nil -> {:noreply, put_flash(socket, :error, "User not found")}
     end
   end
 
@@ -160,25 +162,38 @@ defmodule MySuperAppWeb.AdminMainPage do
   end
 
   def handle_event("save_role", %{"user" => %{"role_id" => role_id}}, socket) do
+    %{current_user: current_user, manage: manage} = socket.assigns
+    user_id = manage.form.data.id
+
     with {:ok, role_id} <- PageHelper.parse_positive(role_id),
-         {:ok, _user} <- Accounts.update_user_role(socket.assigns.manage.form.data.id, role_id) do
+         :ok <- authorize_manage(current_user, user_id),
+         :ok <- authorize_role(manage.roles, role_id),
+         {:ok, _user} <- Accounts.update_user_role(user_id, role_id) do
       {:noreply, role_saved(socket, "Role updated")}
     else
       :error ->
         {:noreply, put_flash(socket, :error, "Please select a role")}
 
-      {:error, changeset} ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, update(socket, :manage, &%{&1 | form: to_form(changeset)})}
+
+      {:error, message} ->
+        {:noreply, socket |> put_flash(:error, message) |> assign(manage: nil)}
     end
   end
 
   def handle_event("remove_role", _params, socket) do
-    case Accounts.remove_user_role(socket.assigns.manage.form.data.id) do
-      {:ok, _user} ->
-        {:noreply, role_saved(socket, "Role removed")}
+    user_id = socket.assigns.manage.form.data.id
 
-      {:error, changeset} ->
+    with :ok <- authorize_manage(socket.assigns.current_user, user_id),
+         {:ok, _user} <- Accounts.remove_user_role(user_id) do
+      {:noreply, role_saved(socket, "Role removed")}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, update(socket, :manage, &%{&1 | form: to_form(changeset)})}
+
+      {:error, message} ->
+        {:noreply, socket |> put_flash(:error, message) |> assign(manage: nil)}
     end
   end
 
@@ -206,6 +221,24 @@ defmodule MySuperAppWeb.AdminMainPage do
   end
 
   def handle_event("delete", _params, socket), do: {:noreply, assign(socket, user_to_delete: nil)}
+
+  defp authorize_manage(current_user, user_id) do
+    case Accounts.get_user_with_op_and_role(user_id) do
+      nil ->
+        {:error, "User not found"}
+
+      user ->
+        if can_manage?(current_user, user),
+          do: :ok,
+          else: {:error, "You are not allowed to manage this user"}
+    end
+  end
+
+  defp authorize_role(roles, role_id) do
+    if Enum.any?(roles, fn {_name, id} -> id == role_id end),
+      do: :ok,
+      else: {:error, "This role is not available"}
+  end
 
   defp role_saved(socket, message) do
     Process.send_after(self(), :clear_flash, 3000)
