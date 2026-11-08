@@ -43,7 +43,7 @@ defmodule MySuperAppWeb do
         layouts: [html: MySuperAppWeb.Layouts]
 
       import Plug.Conn
-      import MySuperAppWeb.Gettext
+      use Gettext, backend: MySuperAppWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -95,7 +95,7 @@ defmodule MySuperAppWeb do
       # Core UI components and translation
       import MySuperAppWeb.CoreComponents
       import MySuperAppWeb.AdminComponents
-      import MySuperAppWeb.Gettext
+      use Gettext, backend: MySuperAppWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

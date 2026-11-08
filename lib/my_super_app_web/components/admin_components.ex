@@ -194,7 +194,7 @@ defmodule MySuperAppWeb.AdminComponents do
 
   def sort_control(assigns) do
     ~H"""
-    <form phx-change={@on_change} class="flex items-center">
+    <form id={"#{@on_change}-form"} phx-change={@on_change} class="flex items-center">
       <label for="sort-by" class="sr-only">Sort by</label>
       <select
         id="sort-by"
@@ -273,7 +273,7 @@ defmodule MySuperAppWeb.AdminComponents do
 
   def date_range_filter(assigns) do
     ~H"""
-    <form phx-change={@on_change} class="flex items-center gap-2 text-sm">
+    <form id={"#{@on_change}-form"} phx-change={@on_change} class="flex items-center gap-2 text-sm">
       <label class="flex items-center gap-1">
         <span class="text-zinc-600">From</span>
         <input
@@ -346,7 +346,7 @@ defmodule MySuperAppWeb.AdminComponents do
 
   def page_size_select(assigns) do
     ~H"""
-    <form phx-change={@on_change} class="flex items-center gap-2 text-sm">
+    <form id={"#{@on_change}-form"} phx-change={@on_change} class="flex items-center gap-2 text-sm">
       <label for="page-size" class="text-zinc-600">Per page</label>
       <select id="page-size" name="value" class="rounded-lg border-zinc-300 py-1.5 text-sm">
         <option :for={size <- @options} value={size} selected={size == @page_size}>

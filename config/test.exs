@@ -3,7 +3,7 @@ import Config
 # Only in tests, remove the complexity from the password hashing algorithm
 config :pbkdf2_elixir, :rounds, 1
 
-config :my_super_app, Oban, testing: :inline
+config :my_super_app, Oban, testing: :manual
 
 config :my_super_app, :mail_from, "my-super-app@example.com"
 

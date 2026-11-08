@@ -255,7 +255,7 @@ defmodule MySuperAppWeb.AdminMainPage do
     </.page_title>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <form phx-change="change_search" phx-submit="change_search" class="w-full max-w-xs">
+      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-xs">
         <label for="admin-user-search" class="sr-only">Search by login or id</label>
         <input
           id="admin-user-search"
@@ -267,7 +267,7 @@ defmodule MySuperAppWeb.AdminMainPage do
           class="w-full rounded-lg border-zinc-300 text-sm"
         />
       </form>
-      <form phx-change="change_operator_filter">
+      <form id="change-operator-filter-form" phx-change="change_operator_filter">
         <label for="operator-filter" class="sr-only">Operator</label>
         <select id="operator-filter" name="operator" class="rounded-lg border-zinc-300 text-sm">
           <option value="">All operators</option>
@@ -276,7 +276,7 @@ defmodule MySuperAppWeb.AdminMainPage do
           </option>
         </select>
       </form>
-      <form phx-change="change_role_filter">
+      <form id="change-role-filter-form" phx-change="change_role_filter">
         <label for="role-filter" class="sr-only">Role</label>
         <select
           id="role-filter"
@@ -344,7 +344,7 @@ defmodule MySuperAppWeb.AdminMainPage do
 
     <.modal :if={@manage} id="manage-modal" show on_cancel={JS.push("close_modal")}>
       <h2 class="mb-4 text-lg font-semibold text-zinc-900">Manage user operator and role</h2>
-      <form phx-change="change_manage_operator" class="mb-4">
+      <form id="change-manage-operator-form" phx-change="change_manage_operator" class="mb-4">
         <label for="manage-operator" class="block text-sm font-semibold text-zinc-800">
           Operator
         </label>

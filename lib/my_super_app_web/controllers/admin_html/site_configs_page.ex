@@ -214,7 +214,7 @@ defmodule MySuperAppWeb.SiteConfigsPage do
     </.page_title>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <form phx-change="change_search" phx-submit="change_search" class="w-full max-w-sm">
+      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-sm">
         <label for="config-search" class="sr-only">Search</label>
         <input
           id="config-search"

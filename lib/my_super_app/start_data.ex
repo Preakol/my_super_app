@@ -51,14 +51,7 @@ defmodule MySuperApp.StartData do
     |> Repo.insert()
 
     for user_id <- 1..10 do
-      tags =
-        case Enum.random(0..7) do
-          0 ->
-            []
-
-          n ->
-            Enum.map(1..n, fn _ -> %{"title" => Faker.StarWars.planet()} end)
-        end
+      tags = random_tags()
 
       post_params =
         %{
@@ -82,6 +75,13 @@ defmodule MySuperApp.StartData do
       }
 
       Blog.create_picture(picture_params)
+    end
+  end
+
+  defp random_tags do
+    case Enum.random(0..7) do
+      0 -> []
+      n -> Enum.map(1..n, fn _ -> %{"title" => StarWars.planet()} end)
     end
   end
 

@@ -235,7 +235,7 @@ defmodule MySuperAppWeb.PostsPage do
     </.page_title>
 
     <div class="mb-6 flex flex-wrap items-center gap-3">
-      <form phx-change="change_search" phx-submit="change_search" class="w-full max-w-xs">
+      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-xs">
         <label for="post-search" class="sr-only">Search by post title</label>
         <input
           id="post-search"
@@ -254,7 +254,7 @@ defmodule MySuperAppWeb.PostsPage do
         on_change="change_sort"
         on_toggle="toggle_sort_direction"
       />
-      <form phx-change="change_author">
+      <form id="change-author-form" phx-change="change_author">
         <label for="author-filter" class="sr-only">Author</label>
         <select id="author-filter" name="author" class="rounded-lg border-zinc-300 text-sm">
           <option :for={author <- @authors} value={author} selected={author == @filters.author}>

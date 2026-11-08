@@ -186,7 +186,7 @@ defmodule MySuperAppWeb.RolesPage do
     </.page_title>
 
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <form phx-change="change_operator_filter">
+      <form id="change-operator-filter-form" phx-change="change_operator_filter">
         <label for="roles-operator-filter" class="sr-only">Operator</label>
         <select id="roles-operator-filter" name="operator" class="rounded-lg border-zinc-300 text-sm">
           <option value="All" selected={@operator_filter == "All"}>All operators</option>

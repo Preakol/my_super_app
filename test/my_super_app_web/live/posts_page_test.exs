@@ -1,8 +1,9 @@
 defmodule MySuperAppWeb.PostsPageTest do
   use MySuperAppWeb.ConnCase
 
+  use Oban.Testing, repo: MySuperApp.Repo
+
   import Ecto.Query
-  import Swoosh.TestAssertions
   import MySuperApp.AccountsFixtures
 
   alias MySuperApp.{Blog, Blog.Post, Repo}
@@ -96,7 +97,7 @@ defmodule MySuperAppWeb.PostsPageTest do
              "can&#39;t be blank"
   end
 
-  test "publishing sends the author an email", %{conn: conn, post: post} do
+  test "publishing queues an email to the author", %{conn: conn, post: post} do
     age_post(post)
     {:ok, view, _html} = live(conn, ~p"/admin/posts")
     view |> element("#post-#{post.id} > button") |> render_click()
@@ -104,7 +105,7 @@ defmodule MySuperAppWeb.PostsPageTest do
     view |> element("#post-#{post.id} button[role=switch]") |> render_click()
 
     assert Blog.get_post(post.id).published_at
-    assert_email_sent(subject: "Your Post was Published!")
+    assert_enqueued(worker: MySuperApp.Jobs.Email, args: %{"id" => post.id, "title" => post.title})
   end
 
   test "a recently changed post can't be (un)published yet", %{conn: conn, post: post} do

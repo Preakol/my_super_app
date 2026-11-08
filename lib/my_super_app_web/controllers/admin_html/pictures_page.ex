@@ -263,7 +263,7 @@ defmodule MySuperAppWeb.PicturesPage do
     </.page_title>
 
     <div class="mb-6 flex flex-wrap items-center gap-3">
-      <form phx-change="change_search" phx-submit="change_search" class="w-full max-w-md">
+      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-md">
         <label for="picture-search" class="sr-only">Search</label>
         <input
           id="picture-search"
@@ -290,7 +290,7 @@ defmodule MySuperAppWeb.PicturesPage do
         on_toggle="toggle_tag_filter"
         on_clear="clear_tag_filter"
       />
-      <form phx-change="change_extension">
+      <form id="change-extension-form" phx-change="change_extension">
         <label for="extension-filter" class="sr-only">Extension</label>
         <select id="extension-filter" name="extension" class="rounded-lg border-zinc-300 text-sm">
           <option value="">All extensions</option>

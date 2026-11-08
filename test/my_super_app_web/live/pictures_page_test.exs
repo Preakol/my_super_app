@@ -1,8 +1,6 @@
 defmodule MySuperAppWeb.PicturesPageTest do
   use MySuperAppWeb.ConnCase
 
-  import MySuperApp.AccountsFixtures
-
   alias MySuperApp.{Blog, Blog.Picture, Repo}
   alias MySuperAppWeb.PicturesPage
 

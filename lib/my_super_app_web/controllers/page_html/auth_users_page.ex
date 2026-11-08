@@ -78,7 +78,7 @@ defmodule MySuperAppWeb.AuthUsersPage do
     ~H"""
     <.page_title title="Users" />
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <form phx-change="change_filter" phx-submit="change_filter" class="w-full max-w-xs">
+      <form id="change-filter-form" phx-change="change_filter" phx-submit="change_filter" class="w-full max-w-xs">
         <label for="user-filter" class="sr-only">Search by login</label>
         <input
           id="user-filter"
