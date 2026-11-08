@@ -21,11 +21,11 @@ defmodule MySuperAppWeb.Layouts do
       <summary class="flex cursor-pointer list-none items-center gap-2 rounded-full p-1 hover:bg-zinc-100">
         <.avatar user={@current_user} />
         <span class="hidden text-sm font-medium text-zinc-800 sm:inline">
-          <%= display_name(@current_user) %>
+          {display_name(@current_user)}
         </span>
       </summary>
       <ul class="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-zinc-200 bg-white py-1 text-sm shadow-lg">
-        <li class="px-4 py-2 text-xs text-zinc-500"><%= display_name(@current_user) %></li>
+        <li class="px-4 py-2 text-xs text-zinc-500">{display_name(@current_user)}</li>
         <li>
           <.link navigate={~p"/users/settings"} class="block px-4 py-2 hover:bg-zinc-50">
             Settings

@@ -191,7 +191,7 @@ defmodule MySuperAppWeb.RolesPage do
         <select id="roles-operator-filter" name="operator" class="rounded-lg border-zinc-300 text-sm">
           <option value="All" selected={@operator_filter == "All"}>All operators</option>
           <option :for={{name, _id} <- @operators} value={name} selected={name == @operator_filter}>
-            <%= name %>
+            {name}
           </option>
         </select>
       </form>
@@ -205,11 +205,11 @@ defmodule MySuperAppWeb.RolesPage do
       on_sort="sort"
       row_id={&"role-#{&1.id}"}
     >
-      <:col :let={role} label="#" sort_by={:id}><%= role.id %></:col>
-      <:col :let={role} label="Name" sort_by={:name}><%= role.name %></:col>
-      <:col :let={role} label="Operator"><%= role.operator_name %></:col>
+      <:col :let={role} label="#" sort_by={:id}>{role.id}</:col>
+      <:col :let={role} label="Name" sort_by={:name}>{role.name}</:col>
+      <:col :let={role} label="Operator">{role.operator_name}</:col>
       <:col :let={role} label="Last update" sort_by={:updated_at}>
-        <%= format_datetime(role.updated_at) %>
+        {format_datetime(role.updated_at)}
       </:col>
       <:action :let={role}>
         <.icon_button

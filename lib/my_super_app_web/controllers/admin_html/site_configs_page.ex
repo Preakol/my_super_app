@@ -214,7 +214,12 @@ defmodule MySuperAppWeb.SiteConfigsPage do
     </.page_title>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-sm">
+      <form
+        id="change-search-form"
+        phx-change="change_search"
+        phx-submit="change_search"
+        class="w-full max-w-sm"
+      >
         <label for="config-search" class="sr-only">Search</label>
         <input
           id="config-search"
@@ -243,18 +248,18 @@ defmodule MySuperAppWeb.SiteConfigsPage do
       on_sort="sort"
       row_id={&"site-config-#{&1.id}"}
     >
-      <:col :let={config} label="#" sort_by={:id}><%= config.id %></:col>
-      <:col :let={config} label="Brand"><%= config.brand %></:col>
-      <:col :let={config} label="Operator"><%= config.operator_name %></:col>
+      <:col :let={config} label="#" sort_by={:id}>{config.id}</:col>
+      <:col :let={config} label="Brand">{config.brand}</:col>
+      <:col :let={config} label="Operator">{config.operator_name}</:col>
       <:col :let={config} label="Created at" sort_by={:inserted_at}>
-        <%= format_datetime(config.inserted_at) %>
+        {format_datetime(config.inserted_at)}
       </:col>
       <:col :let={config} label="Status">
         <span class={[
           "rounded-full px-2 py-0.5 text-xs font-semibold",
           if(config.status, do: "bg-emerald-100 text-emerald-800", else: "bg-zinc-200 text-zinc-700")
         ]}>
-          <%= if config.status, do: "ACTIVE", else: "STOPPED" %>
+          {if config.status, do: "ACTIVE", else: "STOPPED"}
         </span>
       </:col>
       <:action :let={config}>

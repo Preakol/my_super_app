@@ -78,7 +78,12 @@ defmodule MySuperAppWeb.AuthUsersPage do
     ~H"""
     <.page_title title="Users" />
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <form id="change-filter-form" phx-change="change_filter" phx-submit="change_filter" class="w-full max-w-xs">
+      <form
+        id="change-filter-form"
+        phx-change="change_filter"
+        phx-submit="change_filter"
+        class="w-full max-w-xs"
+      >
         <label for="user-filter" class="sr-only">Search by login</label>
         <input
           id="user-filter"
@@ -99,10 +104,10 @@ defmodule MySuperAppWeb.AuthUsersPage do
       on_sort="sort"
       row_id={&"user-#{&1.id}"}
     >
-      <:col :let={user} label="Login" sort_by={:login}><%= user.login %></:col>
-      <:col :let={user} label="Email"><%= user.email %></:col>
+      <:col :let={user} label="Login" sort_by={:login}>{user.login}</:col>
+      <:col :let={user} label="Email">{user.email}</:col>
       <:col :let={user} label="Updated at" sort_by={:updated_at}>
-        <%= format_datetime(user.updated_at) %>
+        {format_datetime(user.updated_at)}
       </:col>
     </.data_table>
     <.pagination

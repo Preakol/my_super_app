@@ -164,10 +164,10 @@ defmodule MySuperAppWeb.OperatorsPage do
       on_sort="sort"
       row_id={&"operator-#{&1.id}"}
     >
-      <:col :let={operator} label="#" sort_by={:id}><%= operator.id %></:col>
-      <:col :let={operator} label="Name" sort_by={:name}><%= operator.name %></:col>
+      <:col :let={operator} label="#" sort_by={:id}>{operator.id}</:col>
+      <:col :let={operator} label="Name" sort_by={:name}>{operator.name}</:col>
       <:col :let={operator} label="Created at" sort_by={:inserted_at}>
-        <%= format_datetime(operator.inserted_at) %>
+        {format_datetime(operator.inserted_at)}
       </:col>
       <:action :let={operator}>
         <.icon_button

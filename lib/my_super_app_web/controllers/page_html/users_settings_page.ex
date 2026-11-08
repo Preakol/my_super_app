@@ -153,10 +153,10 @@ defmodule MySuperAppWeb.UsersSettingsPage do
           <div :for={entry <- @uploads.avatar.entries} class="flex flex-col gap-2">
             <.live_img_preview entry={entry} class="h-20 w-20 rounded-full object-cover" />
             <progress value={entry.progress} max="100" class="w-full">
-              <%= entry.progress %>%
+              {entry.progress}%
             </progress>
             <p :for={err <- upload_errors(@uploads.avatar, entry)} class="text-sm text-red-600">
-              <%= upload_error_message(err) %>
+              {upload_error_message(err)}
             </p>
           </div>
           <label for={@uploads.avatar.ref} class="text-sm font-semibold text-zinc-800">
@@ -164,7 +164,7 @@ defmodule MySuperAppWeb.UsersSettingsPage do
           </label>
           <.live_file_input upload={@uploads.avatar} class="text-sm" />
           <p :for={err <- upload_errors(@uploads.avatar)} class="text-sm text-red-600">
-            <%= upload_error_message(err) %>
+            {upload_error_message(err)}
           </p>
           <.button disabled={@uploads.avatar.entries == []}>Upload photo</.button>
         </form>

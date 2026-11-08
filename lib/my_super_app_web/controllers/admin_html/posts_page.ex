@@ -235,7 +235,12 @@ defmodule MySuperAppWeb.PostsPage do
     </.page_title>
 
     <div class="mb-6 flex flex-wrap items-center gap-3">
-      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-xs">
+      <form
+        id="change-search-form"
+        phx-change="change_search"
+        phx-submit="change_search"
+        class="w-full max-w-xs"
+      >
         <label for="post-search" class="sr-only">Search by post title</label>
         <input
           id="post-search"
@@ -258,7 +263,7 @@ defmodule MySuperAppWeb.PostsPage do
         <label for="author-filter" class="sr-only">Author</label>
         <select id="author-filter" name="author" class="rounded-lg border-zinc-300 text-sm">
           <option :for={author <- @authors} value={author} selected={author == @filters.author}>
-            <%= author %>
+            {author}
           </option>
         </select>
       </form>
@@ -289,14 +294,14 @@ defmodule MySuperAppWeb.PostsPage do
             class="flex w-full flex-col gap-3 p-4 text-left"
           >
             <div class="flex w-full items-start justify-between gap-4">
-              <h2 class="text-lg font-semibold text-zinc-900"><%= post.title %></h2>
+              <h2 class="text-lg font-semibold text-zinc-900">{post.title}</h2>
               <div class="shrink-0 text-right text-xs text-zinc-500">
-                <div><%= post.user.login %></div>
-                <div>Updated <%= format_datetime(post.updated_at) %></div>
+                <div>{post.user.login}</div>
+                <div>Updated {format_datetime(post.updated_at)}</div>
                 <div class={if post.published_at, do: "text-emerald-700", else: "text-zinc-500"}>
-                  <%= if post.published_at,
+                  {if post.published_at,
                     do: "Published #{format_datetime(post.published_at)}",
-                    else: "Not published" %>
+                    else: "Not published"}
                 </div>
               </div>
             </div>
@@ -316,7 +321,7 @@ defmodule MySuperAppWeb.PostsPage do
                 alt={"Picture for #{post.title}"}
                 class="h-52 w-52 shrink-0 rounded-lg object-cover"
               />
-              <p class="whitespace-pre-line text-sm text-zinc-700"><%= post.body %></p>
+              <p class="whitespace-pre-line text-sm text-zinc-700">{post.body}</p>
             </div>
             <div :if={can_edit?(@current_user, post)} class="mt-4 flex flex-wrap justify-end gap-2">
               <.publish_toggle
@@ -337,7 +342,7 @@ defmodule MySuperAppWeb.PostsPage do
 
     <.modal :if={@form} id="post-modal" show on_cancel={JS.push("close_modal")}>
       <h2 class="mb-2 text-lg font-semibold text-zinc-900">
-        <%= if @form_action == :create, do: "Create new post", else: "Edit post" %>
+        {if @form_action == :create, do: "Create new post", else: "Edit post"}
       </h2>
       <.simple_form for={@form} id="post-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:title]} label="Title" placeholder="Post title" />
@@ -379,7 +384,7 @@ defmodule MySuperAppWeb.PostsPage do
         <:actions>
           <div class="flex w-full justify-end gap-2">
             <.secondary_button phx-click="close_modal">Cancel</.secondary_button>
-            <.button><%= if @form_action == :create, do: "Create", else: "Update" %></.button>
+            <.button>{if @form_action == :create, do: "Create", else: "Update"}</.button>
           </div>
         </:actions>
       </.simple_form>

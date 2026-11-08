@@ -255,7 +255,12 @@ defmodule MySuperAppWeb.AdminMainPage do
     </.page_title>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-xs">
+      <form
+        id="change-search-form"
+        phx-change="change_search"
+        phx-submit="change_search"
+        class="w-full max-w-xs"
+      >
         <label for="admin-user-search" class="sr-only">Search by login or id</label>
         <input
           id="admin-user-search"
@@ -272,7 +277,7 @@ defmodule MySuperAppWeb.AdminMainPage do
         <select id="operator-filter" name="operator" class="rounded-lg border-zinc-300 text-sm">
           <option value="">All operators</option>
           <option :for={op <- @operators_for_filter} value={op} selected={op == @filters.operator}>
-            <%= op %>
+            {op}
           </option>
         </select>
       </form>
@@ -286,7 +291,7 @@ defmodule MySuperAppWeb.AdminMainPage do
         >
           <option value="">All roles</option>
           <option :for={role <- @roles_for_filter} value={role} selected={role == @filters.role}>
-            <%= role %>
+            {role}
           </option>
         </select>
       </form>
@@ -302,22 +307,22 @@ defmodule MySuperAppWeb.AdminMainPage do
       on_sort="sort"
       row_id={&"user-#{&1.id}"}
     >
-      <:col :let={user} label="#" sort_by={:id}><%= user.id %></:col>
+      <:col :let={user} label="#" sort_by={:id}>{user.id}</:col>
       <:col :let={user} label="Login" sort_by={:login}>
-        <%= user.login %>
+        {user.login}
         <span :if={user.id == @current_user.id} class="ml-1 rounded bg-zinc-200 px-1.5 text-xs">
           you
         </span>
       </:col>
-      <:col :let={user} label="Email" sort_by={:email}><%= user.email %></:col>
+      <:col :let={user} label="Email" sort_by={:email}>{user.email}</:col>
       <:col :let={user} :if={full_view?(@current_user)} label="Role">
-        <%= user.role_name || "—" %>
+        {user.role_name || "—"}
       </:col>
       <:col :let={user} :if={full_view?(@current_user)} label="Operator">
-        <%= user.operator_name || "—" %>
+        {user.operator_name || "—"}
       </:col>
       <:col :let={user} label="Last update" sort_by={:updated_at}>
-        <%= format_datetime(user.updated_at) %>
+        {format_datetime(user.updated_at)}
       </:col>
       <:action :let={user} :if={full_view?(@current_user)}>
         <.icon_button
@@ -356,7 +361,7 @@ defmodule MySuperAppWeb.AdminMainPage do
         >
           <option value="">Select operator</option>
           <option :for={op <- @manage.operators} value={op} selected={op == @manage.operator}>
-            <%= op %>
+            {op}
           </option>
         </select>
       </form>

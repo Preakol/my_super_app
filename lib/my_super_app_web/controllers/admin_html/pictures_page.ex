@@ -237,17 +237,17 @@ defmodule MySuperAppWeb.PicturesPage do
   defp upload_field(assigns) do
     ~H"""
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-semibold text-zinc-800" for={@upload.ref}><%= @label %></label>
+      <label class="text-sm font-semibold text-zinc-800" for={@upload.ref}>{@label}</label>
       <.live_file_input upload={@upload} class="text-sm" />
       <div :for={entry <- @upload.entries} class="flex flex-col gap-2">
         <.live_img_preview entry={entry} class="max-h-48 w-auto self-start rounded-lg" />
-        <progress value={entry.progress} max="100" class="w-full"><%= entry.progress %>%</progress>
+        <progress value={entry.progress} max="100" class="w-full">{entry.progress}%</progress>
         <p :for={err <- upload_errors(@upload, entry)} class="text-sm text-red-600">
-          <%= upload_error_message(err) %>
+          {upload_error_message(err)}
         </p>
       </div>
       <p :for={err <- upload_errors(@upload)} class="text-sm text-red-600">
-        <%= upload_error_message(err) %>
+        {upload_error_message(err)}
       </p>
     </div>
     """
@@ -263,7 +263,12 @@ defmodule MySuperAppWeb.PicturesPage do
     </.page_title>
 
     <div class="mb-6 flex flex-wrap items-center gap-3">
-      <form id="change-search-form" phx-change="change_search" phx-submit="change_search" class="w-full max-w-md">
+      <form
+        id="change-search-form"
+        phx-change="change_search"
+        phx-submit="change_search"
+        class="w-full max-w-md"
+      >
         <label for="picture-search" class="sr-only">Search</label>
         <input
           id="picture-search"
@@ -299,7 +304,7 @@ defmodule MySuperAppWeb.PicturesPage do
             value={ext.value}
             selected={ext.value == @filters.extension}
           >
-            <%= ext.key %>
+            {ext.key}
           </option>
         </select>
       </form>
@@ -326,16 +331,16 @@ defmodule MySuperAppWeb.PicturesPage do
             />
           </div>
           <div class="flex flex-col gap-0.5 p-3 text-xs text-zinc-600">
-            <span class="truncate font-medium text-zinc-900"><%= picture.file_name %></span>
+            <span class="truncate font-medium text-zinc-900">{picture.file_name}</span>
             <%= if picture.post do %>
-              <span class="truncate">Post #<%= picture.post.id %>: <%= picture.post.title %></span>
+              <span class="truncate">Post #{picture.post.id}: {picture.post.title}</span>
               <span class="truncate">
-                <%= picture.post.user.login %> · <%= picture.post.user.email %>
+                {picture.post.user.login} · {picture.post.user.email}
               </span>
             <% else %>
               <span>Not assigned</span>
             <% end %>
-            <span><%= format_datetime(picture.upload_at) %></span>
+            <span>{format_datetime(picture.upload_at)}</span>
           </div>
         </button>
       </li>
@@ -363,9 +368,9 @@ defmodule MySuperAppWeb.PicturesPage do
 
     <.modal :if={@selected} id="picture-modal" show on_cancel={JS.push("close_modal")}>
       <h2 class="mb-4 text-lg font-semibold text-zinc-900">
-        <%= if @selected.picture.post,
+        {if @selected.picture.post,
           do: ~s(Picture for "#{@selected.picture.post.title}"),
-          else: "Assign picture to a post" %>
+          else: "Assign picture to a post"}
       </h2>
       <img
         :if={@uploads.replacement.entries == []}

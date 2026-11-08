@@ -105,7 +105,11 @@ defmodule MySuperAppWeb.PostsPageTest do
     view |> element("#post-#{post.id} button[role=switch]") |> render_click()
 
     assert Blog.get_post(post.id).published_at
-    assert_enqueued(worker: MySuperApp.Jobs.Email, args: %{"id" => post.id, "title" => post.title})
+
+    assert_enqueued(
+      worker: MySuperApp.Jobs.Email,
+      args: %{"id" => post.id, "title" => post.title}
+    )
   end
 
   test "a recently changed post can't be (un)published yet", %{conn: conn, post: post} do

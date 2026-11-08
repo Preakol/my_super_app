@@ -59,7 +59,7 @@ defmodule MySuperAppWeb.AdminComponents do
       "flex items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-white",
       @class
     ]}>
-      <%= @user.login |> String.first() |> String.upcase() %>
+      {@user.login |> String.first() |> String.upcase()}
     </span>
     """
   end
@@ -70,8 +70,8 @@ defmodule MySuperAppWeb.AdminComponents do
   def page_title(assigns) do
     ~H"""
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-4">
-      <h1 class="text-2xl font-semibold text-zinc-900"><%= @title %></h1>
-      <div class="flex flex-wrap items-center gap-2"><%= render_slot(@actions) %></div>
+      <h1 class="text-2xl font-semibold text-zinc-900">{@title}</h1>
+      <div class="flex flex-wrap items-center gap-2">{render_slot(@actions)}</div>
     </div>
     """
   end
@@ -85,11 +85,11 @@ defmodule MySuperAppWeb.AdminComponents do
   def confirm_modal(assigns) do
     ~H"""
     <.modal id={@id} show on_cancel={JS.push(@on_cancel)}>
-      <h2 class="text-lg font-semibold text-zinc-900"><%= @title %></h2>
+      <h2 class="text-lg font-semibold text-zinc-900">{@title}</h2>
       <div class="mt-6 flex justify-end gap-2">
         <.secondary_button phx-click={@on_cancel}>Cancel</.secondary_button>
         <.button id={"#{@id}-confirm"} phx-click={@on_confirm} class="bg-red-600 hover:bg-red-700">
-          <%= @confirm_label %>
+          {@confirm_label}
         </.button>
       </div>
     </.modal>
@@ -112,7 +112,7 @@ defmodule MySuperAppWeb.AdminComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -143,7 +143,7 @@ defmodule MySuperAppWeb.AdminComponents do
         "h-2.5 w-2.5 rounded-full",
         if(@published, do: "bg-emerald-600", else: "bg-zinc-400")
       ]} />
-      <%= if @published, do: "Published", else: "Not Published" %>
+      {if @published, do: "Published", else: "Not Published"}
     </button>
     """
   end
@@ -157,7 +157,7 @@ defmodule MySuperAppWeb.AdminComponents do
       "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
       tag_color(@tag)
     ]}>
-      <%= tag_title(@tag) %> <%= render_slot(@inner_block) %>
+      {tag_title(@tag)} {render_slot(@inner_block)}
     </span>
     """
   end
@@ -202,7 +202,7 @@ defmodule MySuperAppWeb.AdminComponents do
         class="rounded-l-lg border-zinc-300 py-2 text-sm focus:border-zinc-400 focus:ring-0"
       >
         <option :for={option <- @options} value={option} selected={option == @sort_by}>
-          <%= option %>
+          {option}
         </option>
       </select>
       <button
@@ -232,9 +232,9 @@ defmodule MySuperAppWeb.AdminComponents do
     <div class="flex items-center">
       <details id={@id} class="relative">
         <summary class="flex cursor-pointer list-none items-center gap-2 rounded-l-lg border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-          <%= @label %>
+          {@label}
           <span :if={@selected != []} class="rounded-full bg-zinc-900 px-2 text-xs text-white">
-            <%= length(@selected) %>
+            {length(@selected)}
           </span>
         </summary>
         <ul class="absolute z-20 mt-1 max-h-60 w-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
@@ -246,7 +246,7 @@ defmodule MySuperAppWeb.AdminComponents do
               value={option}
               class="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-zinc-50"
             >
-              <%= option %>
+              {option}
               <.icon :if={option in @selected} name="hero-check" class="h-4 w-4 text-emerald-600" />
             </button>
           </li>
@@ -324,7 +324,7 @@ defmodule MySuperAppWeb.AdminComponents do
           if(page == @current_page, do: "bg-zinc-900 text-white", else: "hover:bg-zinc-100")
         ]}
       >
-        <%= page %>
+        {page}
       </button>
       <button
         type="button"
@@ -350,7 +350,7 @@ defmodule MySuperAppWeb.AdminComponents do
       <label for="page-size" class="text-zinc-600">Per page</label>
       <select id="page-size" name="value" class="rounded-lg border-zinc-300 py-1.5 text-sm">
         <option :for={size <- @options} value={size} selected={size == @page_size}>
-          <%= size %>
+          {size}
         </option>
       </select>
     </form>
@@ -385,7 +385,7 @@ defmodule MySuperAppWeb.AdminComponents do
                   value={col.sort_by}
                   class="inline-flex items-center gap-1 hover:text-zinc-900"
                 >
-                  <%= col.label %>
+                  {col.label}
                   <.icon
                     :if={@sort.column == col.sort_by}
                     name={
@@ -395,7 +395,7 @@ defmodule MySuperAppWeb.AdminComponents do
                   />
                 </button>
               <% else %>
-                <%= col[:label] %>
+                {col[:label]}
               <% end %>
             </th>
             <th :if={@action != []} scope="col" class="px-4 py-2.5">
@@ -406,13 +406,13 @@ defmodule MySuperAppWeb.AdminComponents do
         <tbody class="divide-y divide-zinc-100">
           <tr :if={@rows == []}>
             <td colspan={length(@col) + 1} class="px-4 py-6 text-center text-zinc-500">
-              <%= @empty_text %>
+              {@empty_text}
             </td>
           </tr>
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="hover:bg-zinc-50">
-            <td :for={col <- @col} class="px-4 py-2.5 text-zinc-800"><%= render_slot(col, row) %></td>
+            <td :for={col <- @col} class="px-4 py-2.5 text-zinc-800">{render_slot(col, row)}</td>
             <td :if={@action != []} class="px-4 py-2.5">
-              <div class="flex justify-end gap-1"><%= render_slot(@action, row) %></div>
+              <div class="flex justify-end gap-1">{render_slot(@action, row)}</div>
             </td>
           </tr>
         </tbody>
