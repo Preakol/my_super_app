@@ -59,7 +59,10 @@ defmodule MySuperAppWeb.OperatorsPage do
   end
 
   def handle_event("open_delete", %{"value" => id}, socket) do
-    {:noreply, assign(socket, operator_to_delete: CasinosAdmins.get_operator(id))}
+    case CasinosAdmins.get_operator(id) do
+      {:ok, operator} -> {:noreply, assign(socket, operator_to_delete: operator)}
+      {:error, :not_found} -> {:noreply, put_flash(socket, :error, "Operator not found")}
+    end
   end
 
   def handle_event("close_modal", _params, socket) do

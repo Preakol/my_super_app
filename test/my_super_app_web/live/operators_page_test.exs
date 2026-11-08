@@ -34,6 +34,34 @@ defmodule MySuperAppWeb.OperatorsPageTest do
              "should be at least 3"
   end
 
+  test "shows the duplicate name error instead of crashing", %{conn: conn} do
+    Repo.insert!(%Operator{name: "Lucky Spin"})
+    head = user_fixture(%{login: "newhead"})
+    {:ok, view, _html} = live(conn, ~p"/admin/operators")
+
+    view |> element("button", "Add new operator") |> render_click()
+    view |> form("#create-operator-form", operator: %{name: "Lucky Spin"}) |> render_change()
+
+    html =
+      view
+      |> form("#create-operator-form", operator: %{name: "Lucky Spin", user_id: head.id})
+      |> render_submit()
+
+    assert html =~ "has already been taken"
+    assert is_nil(Accounts.get_user(head.id).role)
+  end
+
+  test "reports an operator deleted in the meantime", %{conn: conn} do
+    operator = Repo.insert!(%Operator{name: "Gone Casino"})
+    {:ok, view, _html} = live(conn, ~p"/admin/operators")
+    Repo.delete!(operator)
+
+    html = view |> element(~s(button[aria-label="Delete Gone Casino"])) |> render_click()
+
+    assert html =~ "Operator not found"
+    refute has_element?(view, "#delete-operator-modal")
+  end
+
   test "deletes an operator after confirmation", %{conn: conn} do
     operator = Repo.insert!(%Operator{name: "Gone Casino"})
     {:ok, view, _html} = live(conn, ~p"/admin/operators")

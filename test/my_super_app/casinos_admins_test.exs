@@ -52,11 +52,18 @@ defmodule MySuperApp.CasinosAdminsTest do
 
   describe "get_operator/1" do
     test "returns the operator map for a valid ID", %{operator1: operator1} do
-      assert Map.from_struct(operator1) == CasinosAdmins.get_operator(operator1.id)
+      assert {:ok, Map.from_struct(operator1)} == CasinosAdmins.get_operator(operator1.id)
+      assert {:ok, Map.from_struct(operator1)} == CasinosAdmins.get_operator("#{operator1.id}")
     end
 
-    test "returns nil for an empty string ID" do
-      assert CasinosAdmins.get_operator("") == nil
+    test "returns :not_found for missing or malformed IDs", %{operator2: operator2} do
+      Repo.delete!(operator2)
+
+      assert CasinosAdmins.get_operator(operator2.id) == {:error, :not_found}
+      assert CasinosAdmins.get_operator("#{operator2.id}") == {:error, :not_found}
+      assert CasinosAdmins.get_operator("") == {:error, :not_found}
+      assert CasinosAdmins.get_operator("abc") == {:error, :not_found}
+      assert CasinosAdmins.get_operator(nil) == {:error, :not_found}
     end
   end
 
@@ -78,6 +85,40 @@ defmodule MySuperApp.CasinosAdminsTest do
       assert Enum.any?(roles, fn r -> r.name == "Head of NewOperator" and r.permissions == 2 end)
       assert Enum.any?(roles, fn r -> r.name == "viewer" and r.permissions == 4 end)
       assert Enum.any?(roles, fn r -> r.name == "role_manager" and r.permissions == 3 end)
+    end
+
+    test "returns a changeset error for a duplicate name and changes nothing", %{
+      operator1: operator1,
+      user_without_role: user
+    } do
+      operators_before = Repo.aggregate(Operator, :count)
+
+      assert {:error, changeset} =
+               CasinosAdmins.create_operator(%{
+                 "name" => operator1.name,
+                 "user_id" => "#{user.id}"
+               })
+
+      assert %{name: ["has already been taken"]} = errors_on(changeset)
+      assert Repo.aggregate(Operator, :count) == operators_before
+      assert is_nil(Accounts.get_user(user.id).role)
+    end
+
+    test "rolls back when the head user is missing or already has a role", %{
+      operator1: operator1
+    } do
+      user_with_role = Repo.get_by!(MySuperApp.User, login: "testuser1")
+      operators_before = Repo.aggregate(Operator, :count)
+
+      for user_id <- [nil, "", "abc", "#{user_with_role.id}"] do
+        assert {:error, changeset} =
+                 CasinosAdmins.create_operator(%{"name" => "Fresh", "user_id" => user_id})
+
+        assert %{user_id: ["select a user without a role"]} = errors_on(changeset)
+      end
+
+      assert Repo.aggregate(Operator, :count) == operators_before
+      assert Accounts.get_user(user_with_role.id).role.operator_id == operator1.id
     end
   end
 
