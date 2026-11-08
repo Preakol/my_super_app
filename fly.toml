@@ -1,9 +1,10 @@
-# fly.toml app configuration file generated for filonenko-project on 2024-08-27T17:00:58+03:00
+# Fly.io app configuration. The app name must be globally unique on Fly;
+# change `app` and PHX_HOST together if this one is taken.
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'filonenko-project'
+app = 'my-super-app-demo'
 primary_region = 'otp'
 kill_signal = 'SIGTERM'
 
@@ -13,7 +14,7 @@ kill_signal = 'SIGTERM'
   release_command = '/app/bin/migrate'
 
 [env]
-  PHX_HOST = 'filonenko-project.fly.dev'
+  PHX_HOST = 'my-super-app-demo.fly.dev'
   PORT = '8080'
 
 [http_service]

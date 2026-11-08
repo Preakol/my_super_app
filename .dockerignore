@@ -24,6 +24,11 @@
 !.git/HEAD
 !.git/refs
 
+# Local secrets and editor/CI files
+.env
+.env.*
+/.github/
+
 # Common development/test artifacts
 /cover/
 /doc/
