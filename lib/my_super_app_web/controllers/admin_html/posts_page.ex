@@ -5,7 +5,7 @@ defmodule MySuperAppWeb.PostsPage do
   alias MySuperApp.{Accounts, AdminPubSub, Blog, Blog.Post}
   alias MySuperApp.Jobs.Email
 
-  @sorting_options ["Updated At", "Published At", "Title", "Author", "Post Content Length"]
+  @sorting_options Blog.post_sort_options()
   @default_filters %{search: "", author: "All Authors", tags: [], sorting: {:desc, "Updated At"}}
   @publish_lock_minutes 5
 

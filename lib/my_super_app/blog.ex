@@ -48,6 +48,10 @@ defmodule MySuperApp.Blog do
     |> Repo.all()
   end
 
+  @doc "Columns posts can be sorted by, as accepted by the `sorting` arguments."
+  def post_sort_options,
+    do: ["Updated At", "Published At", "Title", "Author", "Post Content Length"]
+
   def get_authors() do
     from(u in User,
       join: p in assoc(u, :posts),

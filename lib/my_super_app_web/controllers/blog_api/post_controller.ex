@@ -7,41 +7,43 @@ defmodule MySuperAppWeb.PostController do
 
   action_fallback MySuperAppWeb.FallbackController
 
+  @directions %{"asc" => :asc, "desc" => :desc}
+
   def index(conn, params) do
-    posts = fetch_posts(params)
-    render(conn, :index, posts: posts)
+    case parse_sorting(params) do
+      {:ok, sorting} ->
+        render(conn, :index, posts: fetch_posts(params, sorting))
+
+      {:error, message} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: message})
+    end
   end
 
-  defp fetch_posts(%{"q" => text}) when is_binary(text), do: Blog.search_posts(text)
+  defp parse_sorting(%{"order_by" => order_by, "dir" => dir}) do
+    cond do
+      not Map.has_key?(@directions, dir) ->
+        {:error, "dir must be one of: asc, desc"}
 
-  defp fetch_posts(%{
-         "start_date" => start_date,
-         "end_date" => end_date,
-         "order_by" => order_by,
-         "dir" => dir
-       }) do
-    Blog.get_posts_by_period(start_date, end_date, [{String.to_atom(dir), order_by}])
+      order_by not in Blog.post_sort_options() ->
+        {:error, "order_by must be one of: " <> Enum.join(Blog.post_sort_options(), ", ")}
+
+      true ->
+        {:ok, [{Map.fetch!(@directions, dir), order_by}]}
+    end
   end
 
-  defp fetch_posts(%{"start_date" => start_date, "end_date" => end_date}) do
-    Blog.get_posts_by_period(start_date, end_date)
-  end
+  defp parse_sorting(_params), do: {:ok, []}
 
-  defp fetch_posts(%{"date" => date, "order_by" => order_by, "dir" => dir}) do
-    Blog.get_posts_by_date(date, [{String.to_atom(dir), order_by}])
-  end
+  defp fetch_posts(%{"q" => text}, _sorting) when is_binary(text), do: Blog.search_posts(text)
 
-  defp fetch_posts(%{"date" => date}) do
-    Blog.get_posts_by_date(date)
-  end
+  defp fetch_posts(%{"start_date" => start_date, "end_date" => end_date}, sorting),
+    do: Blog.get_posts_by_period(start_date, end_date, sorting)
 
-  defp fetch_posts(%{"order_by" => order_by, "dir" => dir}) do
-    Blog.list_posts([{String.to_atom(dir), order_by}])
-  end
+  defp fetch_posts(%{"date" => date}, sorting), do: Blog.get_posts_by_date(date, sorting)
 
-  defp fetch_posts(_params) do
-    Blog.list_posts()
-  end
+  defp fetch_posts(_params, sorting), do: Blog.list_posts(sorting)
 
   def create(conn, %{"post" => post_params}) do
     with %User{} = _user <- Repo.get_by(User, id: post_params["user_id"]),

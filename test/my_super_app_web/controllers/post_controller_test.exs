@@ -37,6 +37,41 @@ defmodule MySuperAppWeb.PostControllerTest do
       assert id == post.id
     end
 
+    test "sorts by a whitelisted column and direction", %{conn: conn} do
+      user = MySuperApp.AccountsFixtures.user_fixture()
+
+      for title <- ["Banana", "Apple", "Cherry"] do
+        {:ok, _post} =
+          MySuperApp.Blog.create_post(%{"title" => title, "body" => "Text", "user_id" => user.id})
+      end
+
+      titles = fn dir ->
+        conn
+        |> get(~p"/api/posts", order_by: "Title", dir: dir)
+        |> json_response(200)
+        |> Map.fetch!("data")
+        |> Enum.map(& &1["title"])
+      end
+
+      assert titles.("asc") == ["Apple", "Banana", "Cherry"]
+      assert titles.("desc") == ["Cherry", "Banana", "Apple"]
+    end
+
+    test "rejects unknown sort directions and columns with 400", %{conn: conn} do
+      assert %{"error" => "dir must be one of: asc, desc"} =
+               conn
+               |> get(~p"/api/posts",
+                 order_by: "Title",
+                 dir: "sideways_#{System.unique_integer()}"
+               )
+               |> json_response(400)
+
+      assert %{"error" => "order_by must be one of: " <> _} =
+               conn
+               |> get(~p"/api/posts", order_by: "drop_#{System.unique_integer()}", dir: "asc")
+               |> json_response(400)
+    end
+
     test "lists posts by date", %{conn: conn} do
       post = post_fixture()
 
