@@ -61,7 +61,6 @@ defmodule MySuperApp.MixProject do
       {:jason, "~> 1.4"},
       {:dns_cluster, "~> 0.3"},
       {:bandit, "~> 1.14"},
-      {:faker, "~> 0.19"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:pbkdf2_elixir, "~> 2.3"},
       {:ecto_hooks, "~> 2.0"},
