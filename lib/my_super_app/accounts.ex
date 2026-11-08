@@ -3,7 +3,7 @@ defmodule MySuperApp.Accounts do
   The Accounts context.
   """
 
-  alias MySuperApp.{Repo, User, UserToken, AdminPubSub}
+  alias MySuperApp.{Repo, SortDirection, User, UserToken, AdminPubSub}
 
   import Ecto.Query, warn: false
 
@@ -219,9 +219,7 @@ defmodule MySuperApp.Accounts do
   end
 
   defp add_sorting(query, [{parameter, direction}]) do
-    from(user in query,
-      order_by: ^[{direction |> String.downcase() |> String.to_atom(), parameter}]
-    )
+    from(user in query, order_by: ^[{SortDirection.parse!(direction), parameter}])
   end
 
   defp user_with_op_and_role_query(query) do

@@ -553,11 +553,19 @@ defmodule MySuperApp.Blog do
     )
   end
 
+  @sort_columns %{
+    "Updated At" => :updated_at,
+    "Published At" => :published_at,
+    "Title" => :title,
+    "Upload At" => :upload_at,
+    "File Name" => :file_name
+  }
+
   defp add_sorting(query, [{direction, parameter}]) do
-    from(p in query,
-      order_by:
-        ^[{direction, String.downcase(parameter) |> String.replace(" ", "_") |> String.to_atom()}]
-    )
+    case Map.fetch(@sort_columns, parameter) do
+      {:ok, column} -> from(p in query, order_by: ^[{direction, column}])
+      :error -> raise ArgumentError, "unknown sort column: #{inspect(parameter)}"
+    end
   end
 
   defp add_pic_search_filter(query, search) do

@@ -4,7 +4,7 @@ defmodule MySuperApp.Authority do
   """
 
   import Ecto.Query, warn: false
-  alias MySuperApp.{Repo, Role, AdminPubSub}
+  alias MySuperApp.{Repo, Role, SortDirection, AdminPubSub}
 
   def get_roles() do
     Repo.all(Role)
@@ -102,8 +102,6 @@ defmodule MySuperApp.Authority do
   end
 
   defp add_sorting(query, [{parameter, direction}]) do
-    from(role in query,
-      order_by: ^[{direction |> String.downcase() |> String.to_atom(), parameter}]
-    )
+    from(role in query, order_by: ^[{SortDirection.parse!(direction), parameter}])
   end
 end

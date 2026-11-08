@@ -4,15 +4,18 @@ defmodule MySuperApp.SiteConfigManagement do
   """
 
   import Ecto.Query, warn: false
-  alias MySuperApp.{Repo, SiteConfig, AdminPubSub}
+  alias MySuperApp.{Repo, SiteConfig, SortDirection, AdminPubSub}
 
   def list_potential_brands(), do: Repo.all(from b in "brands", select: b.name)
 
   def list_site_configs(), do: Repo.all(SiteConfig)
 
+  @doc "Site configs created on `date` (YYYY-MM-DD), or `{:error, :invalid_date}`."
   def list_site_configs_by_date(date) do
-    add_date_filter(SiteConfig, date, date)
-    |> Repo.all()
+    case is_binary(date) && Date.from_iso8601(date) do
+      {:ok, _date} -> SiteConfig |> add_date_filter(date, date) |> Repo.all()
+      _invalid -> {:error, :invalid_date}
+    end
   end
 
   def list_site_configs_by_op(operator_name) do
@@ -113,8 +116,6 @@ defmodule MySuperApp.SiteConfigManagement do
   end
 
   defp add_sorting(query, [{parameter, direction}]) do
-    from(site in query,
-      order_by: ^[{direction |> String.downcase() |> String.to_atom(), parameter}]
-    )
+    from(site in query, order_by: ^[{SortDirection.parse!(direction), parameter}])
   end
 end

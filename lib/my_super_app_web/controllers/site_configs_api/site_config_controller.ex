@@ -20,6 +20,11 @@ defmodule MySuperAppWeb.SiteConfigController do
         conn
         |> put_status(:not_found)
         |> json(%{data: [], message: "No matching records found", status: "not_found"})
+
+      {:error, :invalid_date} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid date, expected YYYY-MM-DD"})
     end
   end
 

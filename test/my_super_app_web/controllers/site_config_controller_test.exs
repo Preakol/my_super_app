@@ -35,6 +35,13 @@ defmodule MySuperAppWeb.SiteConfigControllerTest do
       assert json_response(conn, 200)["data"] != []
     end
 
+    test "rejects an invalid date with 400", %{conn: conn} do
+      for date <- ["01.01.2024", "2024-02-30", "today"] do
+        assert %{"error" => "Invalid date, expected YYYY-MM-DD"} =
+                 conn |> get(~p"/api/configs", date: date) |> json_response(400)
+      end
+    end
+
     test "returns not found when no site configs match the date", %{conn: conn} do
       conn = get(conn, ~p"/api/configs", date: "2030-01-01")
       assert json_response(conn, 404)["message"] == "No matching records found"
