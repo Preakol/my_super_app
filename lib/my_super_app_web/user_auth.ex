@@ -18,7 +18,7 @@ defmodule MySuperAppWeb.UserAuth do
     if conn.assigns[:current_user].permissions > 1 do
       conn
       |> put_flash(:warn, "You have no permission to this page")
-      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
+      |> redirect(to: previous_path(conn))
       |> halt()
     else
       conn
@@ -29,7 +29,7 @@ defmodule MySuperAppWeb.UserAuth do
     if is_nil(conn.assigns[:current_user].permissions) do
       conn
       |> put_flash(:warn, "You have no permission to this page")
-      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
+      |> redirect(to: previous_path(conn))
       |> halt()
     else
       conn
@@ -40,7 +40,7 @@ defmodule MySuperAppWeb.UserAuth do
     if conn.assigns[:current_user].permissions > 2 do
       conn
       |> put_flash(:warn, "You have no permission to this page")
-      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
+      |> redirect(to: previous_path(conn))
       |> halt()
     else
       conn
@@ -222,7 +222,7 @@ defmodule MySuperAppWeb.UserAuth do
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
       conn
-      |> redirect(to: get_session(conn, :last_path) |> Enum.at(1) || signed_in_path(conn))
+      |> redirect(to: previous_path(conn))
       |> halt()
     else
       conn
@@ -271,4 +271,17 @@ defmodule MySuperAppWeb.UserAuth do
   defp maybe_store_return_to(conn), do: conn
 
   defp signed_in_path(_conn), do: ~p"/"
+
+  # :last_path is missing for requests that skipped the :store_last_path plug
+  # (e.g. a fresh session opening /users/log_in), and pointing back at the
+  # current path would loop on a permission redirect.
+  defp previous_path(conn) do
+    case get_session(conn, :last_path) do
+      [_current, previous | _] when is_binary(previous) ->
+        if previous == current_path(conn), do: signed_in_path(conn), else: previous
+
+      _missing ->
+        signed_in_path(conn)
+    end
+  end
 end

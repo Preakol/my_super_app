@@ -58,5 +58,27 @@ defmodule MySuperAppWeb.UserAuthLiveTest do
 
       assert {:error, {:redirect, _}} = live(conn, ~p"/users/log_in")
     end
+
+    test "logged-in users without a stored last path are sent home", %{conn: conn, user: user} do
+      conn = conn |> log_in_user(user) |> get(~p"/users/log_in")
+
+      assert redirected_to(conn) == ~p"/"
+    end
+  end
+
+  describe "permission redirects" do
+    test "go back to the previous page", %{conn: conn} do
+      %{conn: conn} = log_in_admin(%{conn: conn}, 3)
+      conn = conn |> get(~p"/admin/users") |> recycle() |> get(~p"/admin/operators")
+
+      assert redirected_to(conn) == ~p"/admin/users"
+    end
+
+    test "fall back to the home page when the previous page is the forbidden one", %{conn: conn} do
+      %{conn: conn} = log_in_admin(%{conn: conn}, 3)
+      conn = conn |> get(~p"/admin/operators") |> recycle() |> get(~p"/admin/operators")
+
+      assert redirected_to(conn) == ~p"/"
+    end
   end
 end
