@@ -27,6 +27,7 @@ defmodule MySuperAppWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
+      import Phoenix.LiveViewTest
       import MySuperAppWeb.ConnCase
       import Mox
     end
@@ -43,6 +44,11 @@ defmodule MySuperAppWeb.ConnCase do
 
   It returns an updated `conn`.
   """
+  def log_in_admin(%{conn: conn}, permissions) do
+    user = MySuperApp.AccountsFixtures.admin_fixture(permissions)
+    %{conn: log_in_user(conn, user), user: user}
+  end
+
   def log_in_user(conn, user) do
     token = MySuperApp.Accounts.generate_user_session_token(user)
 

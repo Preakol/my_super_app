@@ -1,17 +1,26 @@
-<!DOCTYPE html>
-<html lang="en" class="[scrollbar-gutter:stable]">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title>
-      <%= assigns[:page_title] || "MySuperApp" %>
-    </.live_title>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
-  </head>
-  <body class="... theme-moon-light" dir="ltr">
+<header class="border-b border-zinc-200 bg-white">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+    <.link navigate={~p"/admin"} class="flex items-center gap-2 font-semibold text-zinc-900">
+      <.icon name="hero-squares-2x2" class="h-5 w-5" /> MySuperApp Admin
+    </.link>
+    <.user_menu current_user={@current_user} />
+  </div>
+</header>
+<div class="mx-auto flex max-w-7xl gap-8 px-4 py-8 sm:px-6">
+  <nav :if={@page_title != "Admin Welcome"} aria-label="Admin sections" class="w-44 shrink-0">
+    <ul class="flex flex-col gap-1">
+      <li :for={section <- admin_sections(@current_user)}>
+        <.link
+          navigate={section.path}
+          class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+        >
+          <.icon name={section.icon} class="h-4 w-4" /> <%= section.label %>
+        </.link>
+      </li>
+    </ul>
+  </nav>
+  <main class="min-w-0 flex-1">
+    <.flash_group flash={@flash} />
     <%= @inner_content %>
-  </body>
-</html>
+  </main>
+</div>

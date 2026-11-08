@@ -45,8 +45,6 @@ defmodule MySuperAppWeb do
       import Plug.Conn
       import MySuperAppWeb.Gettext
 
-      import Flashy
-
       unquote(verified_routes())
     end
   end
@@ -55,6 +53,15 @@ defmodule MySuperAppWeb do
     quote do
       use Phoenix.LiveView,
         layout: {MySuperAppWeb.Layouts, :app}
+
+      unquote(html_helpers())
+    end
+  end
+
+  def admin_live_view do
+    quote do
+      use Phoenix.LiveView,
+        layout: {MySuperAppWeb.Layouts, :admin}
 
       unquote(html_helpers())
     end
@@ -88,6 +95,7 @@ defmodule MySuperAppWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import MySuperAppWeb.CoreComponents
+      import MySuperAppWeb.AdminComponents
       import MySuperAppWeb.Gettext
 
       # Shortcut for generating JS commands
@@ -95,8 +103,6 @@ defmodule MySuperAppWeb do
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
-
-      import Flashy
     end
   end
 
