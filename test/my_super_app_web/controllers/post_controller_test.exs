@@ -15,6 +15,26 @@ defmodule MySuperAppWeb.PostControllerTest do
       assert json_response(conn, 200)["data"] != []
     end
 
+    test "searches posts by full text", %{conn: conn} do
+      user = MySuperApp.AccountsFixtures.user_fixture()
+
+      [post, _other] =
+        for title <- ["Quarterly operator report", "Unrelated"] do
+          {:ok, post} =
+            MySuperApp.Blog.create_post(%{
+              "title" => title,
+              "body" => "Text",
+              "user_id" => user.id
+            })
+
+          post
+        end
+
+      conn = get(conn, ~p"/api/posts?q=operator")
+      assert [%{"id" => id}] = json_response(conn, 200)["data"]
+      assert id == post.id
+    end
+
     test "lists posts by date", %{conn: conn} do
       post = post_fixture()
 

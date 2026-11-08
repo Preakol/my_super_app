@@ -5,7 +5,7 @@ defmodule MySuperApp.Blog do
 
   import Ecto.Query, warn: false
 
-  alias MySuperApp.{Blog.Post, Blog.Tag, Blog.Picture, User, Repo, AdminPubSub}
+  alias MySuperApp.{Blog.Post, Blog.Search, Blog.Tag, Blog.Picture, User, Repo, AdminPubSub}
 
   @doc """
   Returns the list of posts.
@@ -30,13 +30,21 @@ defmodule MySuperApp.Blog do
         tags: tags,
         sorting: sorting_params
       }) do
-    from(p in Post,
-      where: ilike(p.title, ^"#{search}%"),
-      preload: [:tags, :user, :picture]
-    )
+    from(p in Post, preload: [:tags, :user, :picture])
+    |> Search.filter(search)
     |> add_author_filter(author)
     |> add_tags_filter(tags)
     |> add_sorting(sorting_params)
+    |> Repo.all()
+  end
+
+  @doc """
+  Full-text search over post titles and bodies, best match first.
+  Blank text returns no posts.
+  """
+  def search_posts(text) when is_binary(text) do
+    from(p in Post, preload: [:tags, :user, :picture])
+    |> Search.ranked(text)
     |> Repo.all()
   end
 

@@ -54,6 +54,16 @@ defmodule MySuperAppWeb.PostsPageTest do
     refute has_element?(view, "article", "Hello world")
   end
 
+  test "searches titles and bodies", %{conn: conn, user: author} do
+    create_post(author, %{"title" => "Weekly update", "body" => "New operators joined"})
+    {:ok, view, _html} = live(conn, ~p"/admin/posts")
+
+    view |> form("form[phx-change=change_search]", search: "operator") |> render_change()
+
+    assert has_element?(view, "article", "Weekly update")
+    refute has_element?(view, "article", "Hello world")
+  end
+
   test "creates a post with tags", %{conn: conn, user: author} do
     {:ok, view, _html} = live(conn, ~p"/admin/posts")
     view |> element("button", "Add new post") |> render_click()

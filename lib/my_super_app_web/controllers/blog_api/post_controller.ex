@@ -12,6 +12,8 @@ defmodule MySuperAppWeb.PostController do
     render(conn, :index, posts: posts)
   end
 
+  defp fetch_posts(%{"q" => text}) when is_binary(text), do: Blog.search_posts(text)
+
   defp fetch_posts(%{
          "start_date" => start_date,
          "end_date" => end_date,

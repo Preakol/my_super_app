@@ -241,13 +241,13 @@ defmodule MySuperAppWeb.PostsPage do
         phx-submit="change_search"
         class="w-full max-w-xs"
       >
-        <label for="post-search" class="sr-only">Search by post title</label>
+        <label for="post-search" class="sr-only">Search posts</label>
         <input
           id="post-search"
           type="search"
           name="search"
           value={@filters.search}
-          placeholder="Search by post title"
+          placeholder="Search titles and text"
           phx-debounce="200"
           class="w-full rounded-lg border-zinc-300 text-sm"
         />
