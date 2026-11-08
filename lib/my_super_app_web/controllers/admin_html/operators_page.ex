@@ -1,168 +1,222 @@
 defmodule MySuperAppWeb.OperatorsPage do
-  @moduledoc false
-  use MySuperAppWeb, :admin_surface_live_view
+  @moduledoc "Super-admin page for creating and deleting operators."
+  use MySuperAppWeb, :admin_live_view
 
-  alias MySuperApp.{CasinosAdmins, Operator, Accounts, AdminPubSub}
-  alias MySuperAppWeb.{PageHelper, MyDeleteModal}
+  alias MySuperApp.{Accounts, AdminPubSub, CasinosAdmins, Operator}
+  alias MySuperAppWeb.PageHelper
 
-  alias Moon.Design.{
-    Table,
-    Table.Column,
-    Button,
-    Button.IconButton,
-    Form,
-    Form.Field,
-    Form.Input,
-    Modal,
-    Chip,
-    Pagination,
-    Dropdown
-  }
-
-  alias Moon.Icons.{ControlsChevronLeft, ControlsChevronRight}
-
-  data(operator_to_delete, :any, default: %{name: ""})
-  data(page_title, :string, default: "Operators")
-  data(page_size, :integer, default: 5)
-  data(current_page, :integer, default: 1)
-  data(sort, :any, default: [id: "ASC"])
-  data(create_modal_open, :boolean, default: false)
-  data(del_modal_open, :boolean, default: false)
+  @sortable [:id, :name, :inserted_at]
 
   def mount(_params, session, socket) do
-    if connected?(socket) do
-      AdminPubSub.subscribe("operators")
-    end
+    if connected?(socket), do: AdminPubSub.subscribe("operators")
 
-    {:ok, assign(socket,
-        current_user: Accounts.get_user_by_session_token(session["user_token"]),
-        form_create: to_form(Operator.changeset(%Operator{}, %{}))
-      )
-      |> update_content()
-    }
+    {:ok,
+     socket
+     |> assign(
+       page_title: "Operators",
+       current_user: Accounts.get_user_by_session_token(session["user_token"]),
+       sort: %{column: :id, direction: :asc},
+       current_page: 1,
+       page_size: 5,
+       create_form: nil,
+       operator_to_delete: nil
+     )
+     |> load_operators()}
   end
 
-  defp update_content(%{assigns: %{sort: [{sort_key, sort_dir}]}} = socket) do
-    assign(socket,
-      operators:
-        CasinosAdmins.get_operators()
-        |> PageHelper.sort_by_collumn(sort_key, sort_dir),
-      users_to_choose: get_users_to_choose()
-    )
+  def handle_info(:clear_flash, socket), do: {:noreply, clear_flash(socket)}
+  def handle_info(:operators_updated, socket), do: {:noreply, load_operators(socket)}
+
+  def handle_info(:users_updated, socket),
+    do: {:noreply, assign(socket, users_to_choose: users_to_choose())}
+
+  def handle_event("open_create", _params, socket) do
+    {:noreply, assign(socket, create_form: operator_form(%{}))}
   end
 
-  def handle_info(:clear_flash, socket) do
-    {:noreply, clear_flash(socket)}
+  def handle_event("validate", %{"operator" => params}, socket) do
+    {:noreply, assign(socket, create_form: operator_form(params, :validate))}
   end
 
-  def handle_info(:operators_updated, socket) do
-    {:noreply, update_content(socket)}
-  end
-
-  def handle_info(:users_updated, socket) do
-    {:noreply, assign(socket, users_to_choose: get_users_to_choose())}
-  end
-
-  def handle_event("do_nothing", _, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_event("toggle_create_modal", _params, socket) do
-    {:noreply,
-     assign(socket,
-       create_modal_open: !socket.assigns.create_modal_open
-     )}
-  end
-
-  def handle_event("validate", %{"operator" => operator_attrs}, socket) do
-    {:noreply, assign(socket, form_create: validate_form(operator_attrs))}
-  end
-
-  def handle_event("create", %{"operator" => operator_params}, socket) do
-    Modal.close("modal_create")
-
-    case CasinosAdmins.create_operator(operator_params) do
+  def handle_event("create", %{"operator" => params}, socket) do
+    case CasinosAdmins.create_operator(params) do
       {:ok, _operator} ->
         Process.send_after(self(), :clear_flash, 3000)
 
         {:noreply,
-          socket
-          |> put_flash(:info, "operator created")
-          |> assign(
-            create_modal_open: !socket.assigns.create_modal_open,
-            current_page: 1,
-            sort: [inserted_at: "DESC"],
-            form_create:
-              %Operator{}
-              |> Operator.changeset(%{})
-              |> to_form()
-          )
-        }
+         socket
+         |> put_flash(:info, "Operator created")
+         |> assign(
+           create_form: nil,
+           current_page: 1,
+           sort: %{column: :inserted_at, direction: :desc}
+         )
+         |> load_operators()}
 
       {:error, changeset} ->
-        {:noreply, assign(socket, form_create: to_form(changeset))}
+        {:noreply, assign(socket, create_form: to_form(changeset))}
     end
   end
 
-  def handle_event("toggle_del_modal", %{"action" => action, "value" => operator_id}, socket) do
-    apply(Modal, String.to_atom(action), ["modal_delete"])
-    {:noreply,
-     assign(socket,
-       del_modal_open: !socket.assigns.del_modal_open,
-       operator_to_delete: CasinosAdmins.get_operator(operator_id) || %{id: "", name: ""}
-     )}
+  def handle_event("open_delete", %{"value" => id}, socket) do
+    {:noreply, assign(socket, operator_to_delete: CasinosAdmins.get_operator(id))}
   end
 
-  def handle_event("delete", _, socket) do
-    Modal.close("modal_delete")
-
-    case CasinosAdmins.delete_operator(socket.assigns.operator_to_delete.id) do
-      {:ok, operator} ->
-        Process.send_after(self(), :clear_flash, 3000)
-        {:noreply,
-          socket
-          |> put_flash(:info, "#{operator.name} deleted")
-          |> assign(current_page: PageHelper.update_current_page(socket, socket.assigns.operators))
-        }
-
-      {:error, _} ->
-        {:noreply,
-          assign(socket, current_page: PageHelper.update_current_page(socket, socket.assigns.operators))
-          |> update_content()}
-    end
+  def handle_event("close_modal", _params, socket) do
+    {:noreply, assign(socket, create_form: nil, operator_to_delete: nil)}
   end
 
   def handle_event(
-        "handle_sorting_click",
-        %{"sort-dir" => sort_dir, "sort-key" => sort_key},
-        socket
+        "delete",
+        _params,
+        %{assigns: %{operator_to_delete: %{id: id, name: name}}} = socket
       ) do
-    {:noreply,
-     assign(socket,
-       operators:
-         PageHelper.sort_by_collumn(
-           socket.assigns.operators,
-           String.to_atom(sort_key),
-           sort_dir
-         ),
-       sort: ["#{sort_key}": sort_dir]
-     )}
+    Process.send_after(self(), :clear_flash, 3000)
+
+    socket =
+      case CasinosAdmins.delete_operator(id) do
+        {:ok, _operator} -> put_flash(socket, :info, "#{name} deleted")
+        {:error, _changeset} -> put_flash(socket, :error, "#{name} could not be deleted")
+      end
+
+    {:noreply, socket |> assign(operator_to_delete: nil) |> load_operators()}
   end
 
-  def handle_event("on_change_page_size", %{"value" => page_size}, socket) do
-    Dropdown.close("page-size-dropdown")
-    {:noreply, assign(socket, PageHelper.change_page_size(socket, String.to_integer(page_size)))}
+  def handle_event("delete", _params, socket),
+    do: {:noreply, assign(socket, operator_to_delete: nil)}
+
+  def handle_event("sort", %{"value" => column}, socket) do
+    case Enum.find(@sortable, &(Atom.to_string(&1) == column)) do
+      nil ->
+        {:noreply, socket}
+
+      column ->
+        {:noreply,
+         socket
+         |> assign(sort: PageHelper.toggle_sort(socket.assigns.sort, column))
+         |> load_operators()}
+    end
   end
 
-  defp get_users_to_choose() do
-    Accounts.get_users_without_role()
-    |> Enum.map(&%{key: &1.login, value: &1.id |> Integer.to_string()})
+  def handle_event("change_page_size", %{"value" => value}, socket) do
+    case PageHelper.parse_positive(value) do
+      {:ok, size} ->
+        page = PageHelper.resize_page(socket.assigns.current_page, socket.assigns.page_size, size)
+        {:noreply, assign(socket, page_size: size, current_page: page)}
+
+      :error ->
+        {:noreply, socket}
+    end
   end
 
-  defp validate_form(operator_attrs) do
+  def handle_event("set_page", %{"value" => value}, socket) do
+    case PageHelper.parse_positive(value) do
+      {:ok, page} ->
+        {:noreply,
+         assign(socket,
+           current_page:
+             PageHelper.clamp_page(page, socket.assigns.operators, socket.assigns.page_size)
+         )}
+
+      :error ->
+        {:noreply, socket}
+    end
+  end
+
+  defp load_operators(socket) do
+    operators = CasinosAdmins.get_operators() |> PageHelper.sort_rows(socket.assigns.sort)
+
+    assign(socket,
+      operators: operators,
+      current_page:
+        PageHelper.clamp_page(socket.assigns.current_page, operators, socket.assigns.page_size),
+      users_to_choose: users_to_choose()
+    )
+  end
+
+  defp operator_form(params, action \\ nil) do
     %Operator{}
-    |> Operator.changeset(operator_attrs)
-    |> Map.put(:action, :insert)
+    |> Operator.changeset(params)
+    |> Map.put(:action, action)
     |> to_form()
+  end
+
+  defp users_to_choose, do: Enum.map(Accounts.get_users_without_role(), &{&1.login, &1.id})
+
+  defp can_submit?(form), do: form.source.valid? and form.params["user_id"] not in [nil, ""]
+
+  def render(assigns) do
+    ~H"""
+    <.page_title title="Operators">
+      <:actions>
+        <.button phx-click="open_create">Add new operator</.button>
+      </:actions>
+    </.page_title>
+
+    <div class="mb-4 flex justify-end">
+      <.page_size_select page_size={@page_size} on_change="change_page_size" />
+    </div>
+
+    <.data_table
+      id="operators"
+      rows={PageHelper.paginate(@operators, @current_page, @page_size)}
+      sort={@sort}
+      on_sort="sort"
+      row_id={&"operator-#{&1.id}"}
+    >
+      <:col :let={operator} label="#" sort_by={:id}><%= operator.id %></:col>
+      <:col :let={operator} label="Name" sort_by={:name}><%= operator.name %></:col>
+      <:col :let={operator} label="Created at" sort_by={:inserted_at}>
+        <%= format_datetime(operator.inserted_at) %>
+      </:col>
+      <:action :let={operator}>
+        <.icon_button
+          icon="hero-trash"
+          label={"Delete #{operator.name}"}
+          phx-click="open_delete"
+          value={operator.id}
+        />
+      </:action>
+    </.data_table>
+    <.pagination
+      current_page={@current_page}
+      total_pages={PageHelper.total_pages(@operators, @page_size)}
+      on_change="set_page"
+    />
+
+    <.modal :if={@create_form} id="create-operator-modal" show on_cancel={JS.push("close_modal")}>
+      <h2 class="mb-2 text-lg font-semibold text-zinc-900">Create new operator</h2>
+      <.simple_form
+        for={@create_form}
+        id="create-operator-form"
+        phx-change="validate"
+        phx-submit="create"
+      >
+        <.input field={@create_form[:name]} label="Name" placeholder="Operator name" />
+        <.input
+          field={@create_form[:user_id]}
+          type="select"
+          label="Head of the operator"
+          prompt="Select a user without a role"
+          options={@users_to_choose}
+          disabled={@create_form.params["name"] in [nil, ""]}
+        />
+        <:actions>
+          <div class="flex w-full justify-end gap-2">
+            <.secondary_button phx-click="close_modal">Cancel</.secondary_button>
+            <.button disabled={!can_submit?(@create_form)}>Create</.button>
+          </div>
+        </:actions>
+      </.simple_form>
+    </.modal>
+
+    <.confirm_modal
+      :if={@operator_to_delete}
+      id="delete-operator-modal"
+      title={"Delete operator #{@operator_to_delete.name}?"}
+      on_cancel="close_modal"
+      on_confirm="delete"
+    />
+    """
   end
 end
